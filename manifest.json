@@ -1,0 +1,16 @@
+{
+  "name": "One Piece - Gerenciador de Episódios",
+  "short_name": "One Piece",
+  "description": "Controle seu progresso em One Piece - Canon, Filler e Mixed",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0f172a",
+  "background_color": "#0b1120",
+  "icons": [
+    {
+      "src": "icon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
