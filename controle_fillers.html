@@ -51,7 +51,6 @@
         }
         .stat span { color: #facc15; font-weight: bold; margin-right: 4px; }
         
-        /* Novo botão - estilo pirata */
         .pirate-btn {
             background: linear-gradient(135deg, #f97316, #ea580c);
             border: none;
@@ -70,13 +69,8 @@
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 12px rgba(249,115,22,0.3);
         }
-        .pirate-btn:hover {
-            transform: scale(0.98);
-            box-shadow: 0 2px 8px rgba(249,115,22,0.4);
-        }
-        .pirate-btn:active {
-            transform: scale(0.96);
-        }
+        .pirate-btn:hover { transform: scale(0.98); box-shadow: 0 2px 8px rgba(249,115,22,0.4); }
+        .pirate-btn:active { transform: scale(0.96); }
         
         .filter-bar { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between; }
         .filter-group { display: flex; gap: 6px; background: #1e293b; padding: 0.3rem 0.8rem; border-radius: 2rem; flex-wrap: wrap; }
@@ -119,7 +113,6 @@
         .card-title { font-size: 0.9rem; font-weight: 500; margin-bottom: 12px; line-height: 1.4; word-break: break-word; }
         .card-footer { display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #334155; padding-top: 10px; gap: 8px; }
         
-        /* Destaque para o episódio alvo */
         .highlight-episode {
             animation: highlight 1.5s ease-in-out;
             border-left: 4px solid #facc15 !important;
@@ -182,6 +175,10 @@
             padding: 0.3rem 0.8rem;
             border-radius: 2rem;
         }
+        .file-info {
+            font-size: 0.65rem;
+            color: #86efac;
+        }
     </style>
 </head>
 <body>
@@ -197,20 +194,20 @@
             <div class="stat"><span>⏱️ Horas:</span> <span id="hoursWatched">0</span></div>
             <div class="stat"><span>📊 Total:</span> <span id="totalRelevant">0</span></div>
         </div>
-        <!-- Botão substituído: Ir para o último não assistido -->
-        <button class="pirate-btn" id="goToLastUnwatchedBtn">
-            🏴‍☠️ Ir para o último não assistido ⚓
+        <!-- Botão: Ir para o ÚLTIMO EPISÓDIO ASSISTIDO -->
+        <button class="pirate-btn" id="goToLastWatchedBtn">
+            🏴‍☠️ Ir para o último assistido ⚓
         </button>
     </div>
 
-    <!-- Opção de fonte de dados -->
+    <!-- Opção de fonte de dados - PADRÃO: Arquivo externo (matriz.json) -->
     <div class="json-option">
         <span>📁 Fonte dos dados:</span>
         <select id="dataSourceSelect">
-            <option value="hardcoded">Hardcoded (JSON_RAW_DATA)</option>
-            <option value="external">Arquivo externo (matriz.json)</option>
+            <option value="external" selected>📄 Arquivo externo (matriz.json)</option>
+            <option value="hardcoded">📝 Hardcoded (JSON_RAW_DATA)</option>
         </select>
-        <span style="font-size:0.65rem; color:#94a3b8;">Se escolher externo, coloque o arquivo matriz.json na mesma pasta</span>
+        <span class="file-info" id="fileStatus">✅ Carregando matriz.json...</span>
     </div>
 
     <div class="filter-bar">
@@ -237,16 +234,12 @@
 
 <script>
     // ================================================================
-    // 🔴🔴🔴 DADOS HARCODED (usado se a opção estiver marcada) 🔴🔴🔴
-    // Cole aqui o JSON gerado pelo Conversor
+    // DADOS HARCODED (fallback se o arquivo externo falhar)
+    // Cole aqui o JSON gerado pelo Conversor como backup
     // ================================================================
     const JSON_RAW_DATA = `[[1,"Eu sou Luffy! O homem que vai ser o Rei dos Piratas!","Manga Canon",true],[2,"Apresentamos o Grande Espadachim! O Caçador de Piratas Roronoa Zoro!","Manga Canon",true],[3,"Morgan contra Luffy! Quem é a misteriosa e bela garota?","Manga Canon",true]]`;
     
-    // ================================================================
-    // NOME DO ARQUIVO EXTERNO (matriz.json)
-    // Coloque o arquivo matriz.json na mesma pasta do HTML
-    // Formato esperado: mesmo array do JSON_RAW_DATA
-    // ================================================================
+    // Nome do arquivo externo
     const EXTERNAL_JSON_FILE = "matriz.json";
     // ================================================================
 
@@ -262,29 +255,31 @@
     const hoursWatchedSpan = document.getElementById("hoursWatched");
     const totalRelevantSpan = document.getElementById("totalRelevant");
     const displayCountSpan = document.getElementById("displayCount");
-    const goToLastUnwatchedBtn = document.getElementById("goToLastUnwatchedBtn");
+    const goToLastWatchedBtn = document.getElementById("goToLastWatchedBtn");
     const searchInput = document.getElementById("searchInput");
     const filterBtns = document.querySelectorAll(".filter-btn");
     const dataSourceSelect = document.getElementById("dataSourceSelect");
+    const fileStatus = document.getElementById("fileStatus");
 
-    // Função para mostrar toast/mensagem temporária
-    function showToast(message) {
+    function showToast(message, isError = false) {
         const existingToast = document.querySelector('.toast-message');
         if (existingToast) existingToast.remove();
         const toast = document.createElement('div');
         toast.className = 'toast-message';
         toast.innerHTML = message;
+        if (isError) toast.style.borderLeftColor = '#dc2626';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // Carregar dados da fonte selecionada
     async function loadEpisodes() {
         const source = dataSourceSelect.value;
         
         if (source === "hardcoded") {
+            fileStatus.innerHTML = "📝 Usando dados hardcoded";
             return loadFromHardcoded();
         } else {
+            fileStatus.innerHTML = "📄 Carregando matriz.json...";
             return loadFromExternalFile();
         }
     }
@@ -300,10 +295,12 @@
                 type: String(item[2]),
                 watched: item[3] === true || item[3] === "true" || item[3] === 1
             }));
+            fileStatus.innerHTML = "📝 Hardcoded - " + episodes.length + " episódios";
             showToast(`✅ Dados carregados (hardcoded): ${episodes.length} episódios`);
             return true;
         } catch (err) {
             console.error("Erro hardcoded:", err);
+            fileStatus.innerHTML = "❌ Erro no hardcoded";
             return false;
         }
     }
@@ -322,17 +319,19 @@
                 type: String(item[2]),
                 watched: item[3] === true || item[3] === "true" || item[3] === 1
             }));
-            showToast(`✅ Dados carregados de ${EXTERNAL_JSON_FILE}: ${episodes.length} episódios`);
+            fileStatus.innerHTML = `✅ matriz.json - ${episodes.length} episódios`;
+            showToast(`✅ Dados carregados de matriz.json: ${episodes.length} episódios`);
             return true;
         } catch (err) {
             console.error("Erro ao carregar arquivo externo:", err);
-            showToast(`❌ Arquivo ${EXTERNAL_JSON_FILE} não encontrado. Usando hardcoded.`);
+            fileStatus.innerHTML = `❌ ${EXTERNAL_JSON_FILE} não encontrado`;
+            showToast(`❌ Arquivo ${EXTERNAL_JSON_FILE} não encontrado. Usando hardcoded.`, true);
             // Fallback para hardcoded
+            dataSourceSelect.value = "hardcoded";
             return loadFromHardcoded();
         }
     }
 
-    // Salvar apenas o estado dos assistidos
     function saveToLocalStorage() {
         localStorage.setItem("onePieceWatchedData", JSON.stringify(episodes.map(e => ({ ep: e.ep, watched: e.watched }))));
     }
@@ -361,16 +360,16 @@
         totalRelevantSpan.innerText = relevant.length;
     }
 
-    // Encontrar o último episódio não assistido (ignorando fillers)
-    function findLastUnwatchedEpisode() {
-        // Ordena por EP decrescente e pega o primeiro não assistido que não é filler
-        const sortedByEpDesc = [...episodes].sort((a, b) => b.ep - a.ep);
-        const unwatched = sortedByEpDesc.find(ep => !ep.watched && ep.type !== "Filler");
-        if (!unwatched) {
-            // Se todos foram assistidos, retorna o último episódio (o de maior número)
-            return sortedByEpDesc[0];
+    // 🔴 NOVA FUNÇÃO: Encontrar o ÚLTIMO EPISÓDIO ASSISTIDO (true)
+    function findLastWatchedEpisode() {
+        // Filtra apenas os assistidos e ordena por EP decrescente
+        const watchedEpisodes = episodes.filter(ep => ep.watched === true);
+        if (watchedEpisodes.length === 0) {
+            return null;
         }
-        return unwatched;
+        // Ordena do maior EP para o menor e pega o primeiro (último assistido)
+        watchedEpisodes.sort((a, b) => b.ep - a.ep);
+        return watchedEpisodes[0];
     }
 
     // Rolar até o episódio específico
@@ -379,45 +378,41 @@
         document.querySelectorAll('.highlight-episode').forEach(el => el.classList.remove('highlight-episode'));
         
         // Tenta encontrar na visão de tabela (desktop)
-        const tableRow = document.querySelector(`.table-wrapper td.ep-col`);
-        if (tableRow) {
-            const targetRow = Array.from(document.querySelectorAll('.table-wrapper tr')).find(row => {
-                const epCell = row.querySelector('.ep-col');
-                return epCell && parseInt(epCell.innerText) === epNumber;
-            });
-            if (targetRow) {
-                targetRow.classList.add('highlight-episode');
-                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                showToast(`🏴‍☠️ Navegando para o Episódio ${epNumber}`);
-                setTimeout(() => targetRow.classList.remove('highlight-episode'), 2000);
-                return;
-            }
+        const targetRow = Array.from(document.querySelectorAll('.table-wrapper tr')).find(row => {
+            const epCell = row.querySelector('.ep-col');
+            return epCell && parseInt(epCell.innerText) === epNumber;
+        });
+        
+        if (targetRow) {
+            targetRow.classList.add('highlight-episode');
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            showToast(`🏴‍☠️ Último assistido: Episódio ${epNumber}`);
+            setTimeout(() => targetRow.classList.remove('highlight-episode'), 2000);
+            return;
         }
         
         // Tenta encontrar na visão de cards (mobile)
-        const targetCard = document.querySelector(`.episode-card .card-ep`);
-        if (targetCard) {
-            const cards = document.querySelectorAll('.episode-card');
-            for (let card of cards) {
-                const epSpan = card.querySelector('.card-ep');
-                if (epSpan && parseInt(epSpan.innerText.replace('Episódio ', '')) === epNumber) {
-                    card.classList.add('highlight-episode');
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showToast(`🏴‍☠️ Navegando para o Episódio ${epNumber}`);
-                    setTimeout(() => card.classList.remove('highlight-episode'), 2000);
-                    return;
-                }
+        const cards = document.querySelectorAll('.episode-card');
+        for (let card of cards) {
+            const epSpan = card.querySelector('.card-ep');
+            if (epSpan && parseInt(epSpan.innerText.replace('Episódio ', '')) === epNumber) {
+                card.classList.add('highlight-episode');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast(`🏴‍☠️ Último assistido: Episódio ${epNumber}`);
+                setTimeout(() => card.classList.remove('highlight-episode'), 2000);
+                return;
             }
         }
         
         showToast(`⚠️ Episódio ${epNumber} não encontrado na lista atual`);
     }
 
-    // Função principal do botão
-    function goToLastUnwatched() {
-        const lastUnwatched = findLastUnwatchedEpisode();
-        if (!lastUnwatched) {
-            showToast("🎉 Parabéns! Você já assistiu todos os episódios!");
+    // Função do botão - vai para o ÚLTIMO ASSISTIDO
+    function goToLastWatched() {
+        const lastWatched = findLastWatchedEpisode();
+        
+        if (!lastWatched) {
+            showToast("🎉 Nenhum episódio assistido ainda! Marque alguns episódios como assistidos.");
             return;
         }
         
@@ -430,9 +425,9 @@
             currentFilter = "all";
             renderBothViews();
             // Pequeno delay para renderizar antes de scrollar
-            setTimeout(() => scrollToEpisode(lastUnwatched.ep), 100);
+            setTimeout(() => scrollToEpisode(lastWatched.ep), 100);
         } else {
-            scrollToEpisode(lastUnwatched.ep);
+            scrollToEpisode(lastWatched.ep);
         }
     }
 
@@ -481,7 +476,7 @@
     function renderBothViews() { const filtered = getFiltered(); displayCountSpan.innerText = `Exibindo ${filtered.length} de ${episodes.length} episódios`; renderTableView(filtered); renderCardView(filtered); }
     
     // Eventos
-    goToLastUnwatchedBtn.addEventListener("click", goToLastUnwatched);
+    goToLastWatchedBtn.addEventListener("click", goToLastWatched);
     searchInput.addEventListener("input", (e) => { searchTerm = e.target.value; renderBothViews(); });
     filterBtns.forEach(btn => btn.addEventListener("click", () => { filterBtns.forEach(b => b.classList.remove("active-filter")); btn.classList.add("active-filter"); currentFilter = btn.dataset.filter; renderBothViews(); }));
     
@@ -499,15 +494,17 @@
         }
     });
     
-    // Inicialização
+    // Inicialização - PADRÃO É ARQUIVO EXTERNO (matriz.json)
     async function init() {
+        // Garante que a opção padrão seja "external"
+        dataSourceSelect.value = "external";
         const success = await loadEpisodes();
         if (success && episodes.length > 0) {
             loadWatchedStateFromStorage();
             renderBothViews();
             updateStats();
         } else {
-            const errHtml = '<div class="error-message"><strong>❌ ERRO AO CARREGAR DADOS</strong><br>Use o Conversor para gerar o JSON e cole na variável JSON_RAW_DATA ou crie o arquivo matriz.json</div>';
+            const errHtml = '<div class="error-message"><strong>❌ ERRO AO CARREGAR DADOS</strong><br>Certifique-se que o arquivo <strong>matriz.json</strong> está na mesma pasta que este HTML.<br><br>Use o Conversor para gerar o arquivo matriz.json.</div>';
             tableBody.innerHTML = `<tr><td colspan="4">${errHtml}</td></tr>`;
             cardsContainer.innerHTML = errHtml;
         }
