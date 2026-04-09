@@ -438,4 +438,42 @@ footer {
         padding: 12px 24px;  /* Ajuste de tamanho para o clique no mouse */
         align-self: flex-end; /* Alinha à direita se o pai for flex */
     }
+    
+    .back-to-top {
+    position: fixed;
+    /* Subimos ele para 80px para garantir que não fique atrás da barra do sistema */
+    bottom: 80px; 
+    right: 20px; 
+    background: #1e293b; /* Cor do seu card */
+    color: #f97316;
+    border: 2px solid #f97316;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Z-index altíssimo para passar por cima de qualquer card ou tabela */
+    z-index: 99999; 
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-tap-highlight-color: transparent;
+    }
+    
+    .back-to-top.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* No Desktop, podemos voltar ele para o cantinho */
+    @media (min-width: 769px) {
+        .back-to-top {
+            bottom: 30px;
+            right: 30px;
+        }
+    }
 }

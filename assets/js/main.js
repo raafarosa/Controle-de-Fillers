@@ -430,4 +430,31 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+const backToTopBtn = document.getElementById("backToTopBtn");
+
+function toggleBackToTop() {
+    // Detecta scroll em praticamente qualquer navegador/dispositivo
+    const scrolled = document.documentElement.scrollTop || document.body.scrollTop;
+    
+    if (scrolled > 300) {
+        backToTopBtn.style.display = "flex"; // Garante o display
+        setTimeout(() => backToTopBtn.classList.add("show"), 10);
+    } else {
+        backToTopBtn.classList.remove("show");
+        setTimeout(() => {
+            if (!backToTopBtn.classList.contains("show")) {
+                backToTopBtn.style.display = "none";
+            }
+        }, 300);
+    }
+}
+
+// Escuta scroll e touchmove (movimento de dedo no mobile)
+window.addEventListener("scroll", toggleBackToTop, { passive: true });
+window.addEventListener("touchmove", toggleBackToTop, { passive: true });
+
+backToTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
 init();
