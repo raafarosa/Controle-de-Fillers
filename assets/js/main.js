@@ -1,4 +1,5 @@
 const SHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/1IhzmeXB9Dc7JRnOY3qGE1Ledbad8d7DW7MYCd-2xoY4/gviz/tq?tqx=out:json&gid=1622028477";
+const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwVvg8TrztE7j9CUVHgIu698tpfUAzIiNzoAEAROs6kqtT1nPBN72XiY0HzdMc26aE00w/exec"; // Substitua pelo URL do seu Web App
 const JSON_RAW_DATA = `[[1,"Eu sou Luffy! O homem que vai ser o Rei dos Piratas!","Manga Canon",true]]`;
 const EXTERNAL_JSON_FILE = "matriz.json";
 
@@ -165,6 +166,32 @@ function normalizeWatched(value) {
     return false;
 }
 
+async function updateEpisodeStatus(epNumber, watched) {
+    if (!SHEET_WEB_APP_URL) return false;
+
+    try {
+        const url = new URL(SHEET_WEB_APP_URL);
+        url.searchParams.set('ep', epNumber.toString());
+        url.searchParams.set('watched', watched ? 'true' : 'false');
+
+        console.log('Enviando atualização para:', url.toString());
+
+        // Atualização otimista: assumimos sucesso e enviamos em segundo plano
+        await fetch(url.toString(), {
+            method: 'GET',
+            mode: 'no-cors'
+        });
+
+        console.log('Fetch enviado (otimista)');
+
+        // Como 'no-cors' não permite ler resposta, sempre retornamos true (otimista)
+        return true;
+    } catch (error) {
+        console.warn('Falha ao enviar atualização para Google Sheets (otimista)', error);
+        return true; // Ainda otimista, pois o DOM já foi atualizado
+    }
+}
+
 function saveToLocalStorage() {
     localStorage.setItem(
         "onePieceWatchedData",
@@ -204,10 +231,14 @@ function findLastWatchedEpisode() {
         .sort((a, b) => b.ep - a.ep)[0] || null;
 }
 
+function waitForPaint() {
+    return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
 function scrollToEpisode(epNumber) {
     const card = document.querySelector(`.episode-card[data-ep="${epNumber}"]`);
     const row = document.querySelector(`.episode-row[data-ep="${epNumber}"]`);
-    const target = card || row;
+    const target = card || row || document.querySelector(`[data-ep="${epNumber}"]`);
 
     if (!target) return false;
 
@@ -225,7 +256,7 @@ function scrollToEpisode(epNumber) {
     return true;
 }
 
-function goToLastWatched() {
+async function goToLastWatched() {
     const lastWatched = findLastWatchedEpisode();
     if (!lastWatched) {
         showToast("🎉 Nenhum episódio assistido ainda!");
@@ -237,7 +268,8 @@ function goToLastWatched() {
         document.querySelector('.filter-btn[data-filter="all"]').classList.add("active-filter");
         currentFilter = "all";
         renderCards();
-        setTimeout(() => scrollToEpisode(lastWatched.ep), 120);
+        await waitForPaint();
+        scrollToEpisode(lastWatched.ep);
         return;
     }
 
@@ -333,7 +365,7 @@ function getTypeClass(type) {
 
 function attachCheckboxListeners() {
     document.querySelectorAll('.checkbox-custom').forEach((checkbox) => {
-        checkbox.addEventListener('change', (event) => {
+        checkbox.addEventListener('change', async (event) => {
             event.stopPropagation();
             const epNum = Number(checkbox.dataset.epCheck);
             const episode = episodes.find((item) => item.ep === epNum);
@@ -342,6 +374,9 @@ function attachCheckboxListeners() {
             saveToLocalStorage();
             updateStats();
             renderCards();
+
+            // Atualização otimista: envia em segundo plano sem bloquear
+            updateEpisodeStatus(epNum, checkbox.checked);
         });
     });
 }
