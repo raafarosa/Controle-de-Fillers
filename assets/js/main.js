@@ -212,14 +212,25 @@ function loadWatchedStateFromStorage() {
 }
 
 function updateStats() {
+    // 1. Filtra episódios assistidos (total geral)
     const totalWatched = episodes.filter((episode) => episode.watched).length;
-    const relevant = episodes.filter((episode) => episode.type !== "Filler");
-    const hours = ((totalWatched * 18) / 60).toFixed(1);
+    
+    // 2. Filtra episódios que NÃO são Filler (relevantes)
+    const relevantTypes = ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"];
+    const relevantEpisodes = episodes.filter((ep) => relevantTypes.includes(ep.type));
+    
+    // 3. Filtra quem falta assistir dentro dos relevantes (Comportamento da sua CONT.SES)
+    const missingRelevant = relevantEpisodes.filter((ep) => !ep.watched).length;
 
+    // 4. Cálculos de Tempo (18 min por ep)
+    const hoursWatched = ((totalWatched * 18) / 60).toFixed(1);
+    const hoursRemaining = ((missingRelevant * 18) / 60).toFixed(1);
+
+    // 5. Atualiza o HTML (formatando com vírgula para bater com a planilha)
     watchedCountSpan.textContent = totalWatched;
-    remainingCountSpan.textContent = relevant.filter((episode) => !episode.watched).length;
-    hoursWatchedSpan.textContent = hours;
-    totalRelevantSpan.textContent = relevant.length;
+    remainingCountSpan.textContent = missingRelevant;
+    hoursWatchedSpan.textContent = hoursWatched.replace('.', ',');
+    totalRelevantSpan.textContent = hoursRemaining.replace('.', ',');
 }
 
 function findLastWatchedEpisode() {
