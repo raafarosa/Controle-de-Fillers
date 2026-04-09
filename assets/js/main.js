@@ -169,26 +169,23 @@ function normalizeWatched(value) {
 async function updateEpisodeStatus(epNumber, watched) {
     if (!SHEET_WEB_APP_URL) return false;
 
+    // Criamos o link com os dados grudados nele (Query Parameters)
+    const finalUrl = `${SHEET_WEB_APP_URL}?ep=${epNumber}&watched=${watched}`;
+
     try {
-        const url = new URL(SHEET_WEB_APP_URL);
-        url.searchParams.set('ep', epNumber.toString());
-        url.searchParams.set('watched', watched ? 'true' : 'false');
-
-        console.log('Enviando atualização para:', url.toString());
-
-        // Atualização otimista: assumimos sucesso e enviamos em segundo plano
-        await fetch(url.toString(), {
+        // O modo 'no-cors' envia o dado, mas não permite que o JS leia a resposta.
+        // Como é um projeto pessoal, "enviar" é o que importa!
+        await fetch(finalUrl, {
             method: 'GET',
-            mode: 'no-cors'
+            mode: 'no-cors',
+            cache: 'no-cache'
         });
 
-        console.log('Fetch enviado (otimista)');
-
-        // Como 'no-cors' não permite ler resposta, sempre retornamos true (otimista)
+        console.log(`✅ Comando enviado: EP ${epNumber} -> ${watched}`);
         return true;
     } catch (error) {
-        console.warn('Falha ao enviar atualização para Google Sheets (otimista)', error);
-        return true; // Ainda otimista, pois o DOM já foi atualizado
+        console.error('❌ Erro ao enviar para nuvem:', error);
+        return false;
     }
 }
 
