@@ -1,0 +1,20 @@
+# Google Apps Script (Segurança)
+google-apps-script.gs
+
+# Cache e Logs
+node_modules/
+npm-debug.log*
+.eslintcache
+
+# Configurações de Editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Arquivos de Dados Locais
+# (Caso queira manter o backup apenas no seu PC)
+matriz.json
+
+# Ambiente
+.env
