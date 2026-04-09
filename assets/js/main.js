@@ -233,23 +233,24 @@ function waitForPaint() {
 }
 
 function scrollToEpisode(epNumber) {
-    const card = document.querySelector(`.episode-card[data-ep="${epNumber}"]`);
-    const row = document.querySelector(`.episode-row[data-ep="${epNumber}"]`);
-    const target = card || row || document.querySelector(`[data-ep="${epNumber}"]`);
+    // Identifica se estamos no PC (Tabela) ou Celular (Cards)
+    const isDesktop = window.getComputedStyle(document.querySelector('.table-wrapper')).display !== 'none';
+    
+    // Seleciona o alvo baseado no dispositivo
+    const target = isDesktop 
+        ? document.querySelector(`.episode-row[data-ep="${epNumber}"]`)
+        : document.querySelector(`.episode-card[data-ep="${epNumber}"]`);
 
     if (!target) return false;
 
-    document.querySelectorAll(".highlight-episode").forEach((element) => {
-        element.classList.remove("highlight-episode");
-    });
+    // Remove destaques antigos
+    document.querySelectorAll(".highlight-episode").forEach(el => el.classList.remove("highlight-episode"));
 
+    // Adiciona o destaque e rola a tela
     target.classList.add("highlight-episode");
     target.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    setTimeout(() => {
-        target.classList.remove("highlight-episode");
-    }, 2200);
-
+    setTimeout(() => target.classList.remove("highlight-episode"), 2200);
     return true;
 }
 
@@ -413,7 +414,7 @@ async function init() {
     dataSourceSelect.value = "sheet";
     const success = await loadEpisodes();
     if (success && episodes.length > 0) {
-        loadWatchedStateFromStorage();
+        //loadWatchedStateFromStorage();
         renderCards();
         updateStats();
     } else {

@@ -429,4 +429,13 @@ footer {
     .table-wrapper {
         display: block;
     }
+
+    /* CORREÇÃO PARA O BOTÃO FICAR ENCAIXADO NO PC */
+    .pirate-btn {
+        position: static;    /* Garante que ele NÃO flutue */
+        width: fit-content;  /* Ocupa apenas o espaço do texto */
+        margin-top: 1rem;    /* Espaço em relação aos stats acima */
+        padding: 12px 24px;  /* Ajuste de tamanho para o clique no mouse */
+        align-self: flex-end; /* Alinha à direita se o pai for flex */
+    }
 }
