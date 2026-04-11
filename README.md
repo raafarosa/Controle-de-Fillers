@@ -56,6 +56,4 @@ Durante o desenvolvimento, foram explorados conceitos de:
 * Tratamento de fuso horário em ambientes distribuídos.
 * Criação de APIs simples com Google Apps Script.
 * Otimização de cache e Service Workers.
-
 ---
-*Desenvolvido com carinho vontade de terminar o anime.
