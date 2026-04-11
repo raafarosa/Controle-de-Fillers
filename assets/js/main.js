@@ -145,16 +145,37 @@ function parseSheetRows(data) {
     }
 
     const rows = data.table.rows.map((row) => row.c.map((cell) => cell?.v ?? ""));
-    const hasHeader = rows.length > 0 && typeof rows[0][0] === "string" && /(ep|episódio|episodio|title|título|titulo|type|tipo|watched|assistido)/i.test(rows[0].join(" "));
+    const hasHeader = rows.length > 0 && typeof rows[0][0] === "string";
     const rawRows = hasHeader ? rows.slice(1) : rows;
 
     return rawRows
-        .map((item) => ({
-            ep: Number(item[0]),
-            title: String(item[1] ?? ""),
-            type: String(item[2] ?? ""),
-            watched: normalizeWatched(item[3])
-        }))
+        .map((item) => {
+            let rawDate = item[4];
+            let formattedDate = "";
+
+            if (rawDate) {
+                // Se a data vier no formato Date(2026,3,11) do Google
+                if (typeof rawDate === "string" && rawDate.includes("Date")) {
+                    const dateValues = rawDate.match(/\d+/g);
+                    if (dateValues) {
+                        // O mês no JS começa em 0, mas no Google Sheets gviz também.
+                        const d = new Date(dateValues[0], dateValues[1], dateValues[2]);
+                        formattedDate = d.toLocaleDateString('pt-BR');
+                    }
+                } else {
+                    // Se vier como uma data padrão ou string
+                    formattedDate = formatDate(rawDate);
+                }
+            }
+
+            return {
+                ep: Number(item[0]),
+                title: String(item[1] ?? ""),
+                type: String(item[2] ?? ""),
+                watched: normalizeWatched(item[3]),
+                date: formattedDate // Data tratada
+            };
+        })
         .filter((episode) => !Number.isNaN(episode.ep));
 }
 
@@ -164,6 +185,16 @@ function normalizeWatched(value) {
         return ["true", "sim", "yes", "1"].includes(value.trim().toLowerCase());
     }
     return false;
+}
+
+function formatDate(dateValue) {
+    if (!dateValue) return "";
+    try {
+        const d = new Date(dateValue);
+        return isNaN(d.getTime()) ? "" : d.toLocaleDateString('pt-BR');
+    } catch (e) {
+        return "";
+    }
 }
 
 async function updateEpisodeStatus(epNumber, watched) {
@@ -214,11 +245,11 @@ function loadWatchedStateFromStorage() {
 function updateStats() {
     // 1. Filtra episódios assistidos (total geral)
     const totalWatched = episodes.filter((episode) => episode.watched).length;
-    
+
     // 2. Filtra episódios que NÃO são Filler (relevantes)
     const relevantTypes = ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"];
     const relevantEpisodes = episodes.filter((ep) => relevantTypes.includes(ep.type));
-    
+
     // 3. Filtra quem falta assistir dentro dos relevantes (Comportamento da sua CONT.SES)
     const missingRelevant = relevantEpisodes.filter((ep) => !ep.watched).length;
 
@@ -246,9 +277,9 @@ function waitForPaint() {
 function scrollToEpisode(epNumber) {
     // Identifica se estamos no PC (Tabela) ou Celular (Cards)
     const isDesktop = window.getComputedStyle(document.querySelector('.table-wrapper')).display !== 'none';
-    
+
     // Seleciona o alvo baseado no dispositivo
-    const target = isDesktop 
+    const target = isDesktop
         ? document.querySelector(`.episode-row[data-ep="${epNumber}"]`)
         : document.querySelector(`.episode-card[data-ep="${epNumber}"]`);
 
@@ -323,6 +354,7 @@ function renderCards() {
         return;
     }
 
+    // RENDERIZAÇÃO DOS CARDS (MOBILE)
     const cardHtml = filtered
         .map((episode) => {
             const typeClass = getTypeClass(episode.type);
@@ -333,9 +365,12 @@ function renderCards() {
                         <span class="type-badge ${typeClass}">${escapeHtml(episode.type)}</span>
                     </div>
                     <div class="card-title">${escapeHtml(episode.title)}</div>
-                    <div class="card-footer">
-                        <label for="watch-${episode.ep}">Assistido</label>
-                        <input id="watch-${episode.ep}" type="checkbox" class="checkbox-custom" data-ep-check="${episode.ep}" ${episode.watched ? "checked" : ""}>
+                    <div class="card-footer" style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                        ${episode.date ? `<span style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 4px;">📅 Concluído em: ${episode.date}</span>` : ''}
+                        <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
+                            <label for="watch-${episode.ep}" style="cursor: pointer;">Assistido</label>
+                            <input id="watch-${episode.ep}" type="checkbox" class="checkbox-custom" data-ep-check="${episode.ep}" ${episode.watched ? "checked" : ""}>
+                        </div>
                     </div>
                 </div>
             `;
@@ -343,8 +378,8 @@ function renderCards() {
         .join("");
 
     cardsContainer.innerHTML = cardHtml;
-    attachCheckboxListeners();
 
+    // RENDERIZAÇÃO DA TABELA (DESKTOP)
     if (tableBody) {
         const tableHtml = filtered
             .map((episode) => {
@@ -354,6 +389,7 @@ function renderCards() {
                         <td class="ep-col">${episode.ep}</td>
                         <td>${escapeHtml(episode.title)}</td>
                         <td><span class="type-badge ${typeClass}">${escapeHtml(episode.type)}</span></td>
+                        <td style="font-size: 0.8rem; color: #94a3b8;">${episode.date || '-'}</td>
                         <td><input type="checkbox" class="checkbox-custom" data-ep-check="${episode.ep}" ${episode.watched ? "checked" : ""}></td>
                     </tr>
                 `;
@@ -361,8 +397,10 @@ function renderCards() {
             .join("");
 
         tableBody.innerHTML = tableHtml;
-        attachCheckboxListeners();
     }
+    
+    // Vincula os eventos após renderizar
+    attachCheckboxListeners();
 }
 
 function getTypeClass(type) {
@@ -424,12 +462,15 @@ dataSourceSelect.addEventListener("change", async () => {
 async function init() {
     dataSourceSelect.value = "sheet";
     const success = await loadEpisodes();
+    
     if (success && episodes.length > 0) {
-        //loadWatchedStateFromStorage();
+        // COMENTE OU REMOVA a linha abaixo para não sobrescrever os dados da planilha com o cache local
+        // loadWatchedStateFromStorage(); 
+        
         renderCards();
         updateStats();
     } else {
-        cardsContainer.innerHTML = '<div class="error-message">❌ ERRO: Não foi possível carregar a planilha. Verifique se a planilha está publicada.</div>';
+        cardsContainer.innerHTML = '<div class="error-message">❌ ERRO: Verifique a conexão com a planilha.</div>';
     }
 }
 
@@ -446,7 +487,7 @@ const backToTopBtn = document.getElementById("backToTopBtn");
 function toggleBackToTop() {
     // Detecta scroll em praticamente qualquer navegador/dispositivo
     const scrolled = document.documentElement.scrollTop || document.body.scrollTop;
-    
+
     if (scrolled > 300) {
         backToTopBtn.style.display = "flex"; // Garante o display
         setTimeout(() => backToTopBtn.classList.add("show"), 10);

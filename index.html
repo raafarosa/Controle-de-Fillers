@@ -14,14 +14,14 @@
 
     <link rel="manifest" href="manifest.json">
 
-    <link rel="icon" type="image/x-icon" href="icone.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="icone.ico">
-
-    <link rel="apple-touch-icon" href="icone.ico">
+    <link rel="icon" type="image/x-icon" href="icone.ico?v=1">
+    <link rel="shortcut icon" type="image/x-icon" href="icone.ico?v=1">
+    <link rel="apple-touch-icon" href="icone.ico?v=1">
 
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+
 <div class="app-container">
     <div class="stats-panel">
         <div class="title-area" style="display: flex; justify-content: space-between; align-items: center;">
@@ -33,12 +33,14 @@
                 <button id="installBtn" class="install-btn" style="display: none;">📲 Instalar App</button>
             </div>
         </div>
+        
         <div class="stats-cards" id="statsArea">
             <div class="stat"><span>✅ Episódios Assistidos</span> <span id="watchedCount">0</span></div>
             <div class="stat"><span>⏳ Episódios que faltam</span> <span id="remainingCount">0</span></div>
             <div class="stat"><span>⏱️ Horas assistidas</span> <span id="hoursWatched">0</span></div>
             <div class="stat"><span>📊 Horas restantes</span> <span id="totalRelevant">0</span></div>
         </div>
+        
         <button class="pirate-btn" id="goToLastWatchedBtn">
             🏴‍☠️ Ir para o último assistido ⚓
         </button>
@@ -64,23 +66,35 @@
         </div>
         <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar episódio..." autocomplete="off" enterkeyhint="search">
     </div>
+
     <div class="info-bar">
         <div class="episode-count" id="displayCount"></div>
         <div style="font-size:0.6rem;">✔️ Toque no checkbox</div>
     </div>
 
-    <!-- Apenas cards para mobile (mais performático) -->
     <div id="cardsContainer" class="cards-container"></div>
     
-    <!-- Tabela para desktop (mantida para compatibilidade) -->
     <div class="table-wrapper">
-        <table id="episodeTable"><thead><tr><th>EP</th><th>Título</th><th>Tipo</th><th>Assistido</th></thead><tbody id="tableBody"></tbody></table>
+        <table id="episodeTable">
+            <thead>
+                <tr>
+                    <th>EP</th>
+                    <th>Título</th>
+                    <th>Tipo</th>
+                    <th>Data</th> <th>Assistido</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
-    <footer>⏱️ 18 min/ep • Dados salvos no navegador</footer>
+
+    <footer>⏱️ 18 min/ep • Dados sincronizados com Google Sheets</footer>
 </div>
 
 <button id="backToTopBtn" class="back-to-top" title="Voltar ao topo">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m18 15-6-6-6 6"/>
+    </svg>
 </button>
 
 <script src="assets/js/main.js" defer></script>
