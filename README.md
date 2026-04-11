@@ -58,4 +58,4 @@ Durante o desenvolvimento, foram explorados conceitos de:
 * Otimização de cache e Service Workers.
 
 ---
-*Desenvolvido com vontade de terminar o anime.
+*Desenvolvido com carinho vontade de terminar o anime.
