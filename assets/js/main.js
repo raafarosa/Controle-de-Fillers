@@ -197,25 +197,22 @@ function formatDate(dateValue) {
     }
 }
 
-async function updateEpisodeStatus(epNumber, watched) {
+async function updateEpisodeStatus(epNumber, watched, dataLog) {
     if (!SHEET_WEB_APP_URL) return false;
 
-    // Criamos o link com os dados grudados nele (Query Parameters)
-    const finalUrl = `${SHEET_WEB_APP_URL}?ep=${epNumber}&watched=${watched}`;
+    // Adicionamos o parâmetro &date na URL
+    const finalUrl = `${SHEET_WEB_APP_URL}?ep=${epNumber}&watched=${watched}&date=${dataLog}`;
 
     try {
-        // O modo 'no-cors' envia o dado, mas não permite que o JS leia a resposta.
-        // Como é um projeto pessoal, "enviar" é o que importa!
         await fetch(finalUrl, {
             method: 'GET',
             mode: 'no-cors',
             cache: 'no-cache'
         });
-
-        console.log(`✅ Comando enviado: EP ${epNumber} -> ${watched}`);
+        console.log(`✅ Enviado: EP ${epNumber} | Data: ${dataLog}`);
         return true;
     } catch (error) {
-        console.error('❌ Erro ao enviar para nuvem:', error);
+        console.error('❌ Erro ao enviar:', error);
         return false;
     }
 }
@@ -417,13 +414,22 @@ function attachCheckboxListeners() {
             const epNum = Number(checkbox.dataset.epCheck);
             const episode = episodes.find((item) => item.ep === epNum);
             if (!episode) return;
+            
             episode.watched = checkbox.checked;
+
+            // --- MELHORIA AQUI: Captura a data exata do clique no padrão BR ---
+            const agora = new Date();
+            const dataBrasilia = agora.toLocaleDateString('pt-BR');
+            
+            // Atualizamos a data no objeto local para o feedback ser instantâneo
+            episode.date = checkbox.checked ? dataBrasilia : "";
+
             saveToLocalStorage();
             updateStats();
             renderCards();
 
-            // Atualização otimista: envia em segundo plano sem bloquear
-            updateEpisodeStatus(epNum, checkbox.checked);
+            // Enviamos a data correta para a nuvem
+            updateEpisodeStatus(epNum, checkbox.checked, dataBrasilia);
         });
     });
 }
