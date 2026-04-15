@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    
+
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="One Piece">
     <meta name="mobile-web-app-capable" content="yes">
-    
+
     <title>One Piece Tracker</title>
 
     <link rel="manifest" href="manifest.json">
@@ -20,83 +21,95 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
 
-<div class="app-container">
-    <div class="stats-panel">
-        <div class="title-area" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1>🏴‍☠️ ONE PIECE</h1>
-                <p>Controle de episódios | Progresso salvo</p>
+    <div class="app-container">
+        <div class="stats-panel">
+            <div class="title-area" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>🏴‍☠️ ONE PIECE</h1>
+                    <p>Controle de episódios | Progresso salvo</p>
+                </div>
+                <div class="install-area">
+                    <button id="installBtn" class="install-btn" style="display: none;">📲 Instalar App</button>
+                </div>
             </div>
-            <div class="install-area">
-                <button id="installBtn" class="install-btn" style="display: none;">📲 Instalar App</button>
+
+            <div class="stats-cards" id="statsArea">
+                <div class="stat"><span>✅ Episódios Assistidos</span> <span id="watchedCount">0</span></div>
+                <div class="stat"><span>⏳ Episódios que faltam</span> <span id="remainingCount">0</span></div>
+                <div class="stat"><span>⏱️ Horas assistidas</span> <span id="hoursWatched">0</span></div>
+                <div class="stat"><span>📊 Horas restantes</span> <span id="totalRelevant">0</span></div>
             </div>
+
+            <div class="action-buttons" style="margin-top: 1rem;">
+                <button class="pirate-btn" id="toggleGlobalSpoilers"
+                    style="background: #334155; width: auto; padding: 10px 20px;">
+                    <span id="spoilerIcon">👁️</span> <span id="spoilerText">Ocultar Títulos</span>
+                </button>
+            </div>
+
+            <button class="pirate-btn" id="goToLastWatchedBtn">
+                🏴‍☠️ Ir para o último assistido ⚓
+            </button>
         </div>
-        
-        <div class="stats-cards" id="statsArea">
-            <div class="stat"><span>✅ Episódios Assistidos</span> <span id="watchedCount">0</span></div>
-            <div class="stat"><span>⏳ Episódios que faltam</span> <span id="remainingCount">0</span></div>
-            <div class="stat"><span>⏱️ Horas assistidas</span> <span id="hoursWatched">0</span></div>
-            <div class="stat"><span>📊 Horas restantes</span> <span id="totalRelevant">0</span></div>
+
+        <div class="json-option">
+            <span>📁 Fonte:</span>
+            <select id="dataSourceSelect">
+                <option value="sheet" selected>📄 Google Sheets</option>
+                <option value="external">📄 matriz.json</option>
+                <option value="hardcoded">📝 Hardcoded</option>
+            </select>
+            <span class="file-status" id="fileStatus">✅ Carregando...</span>
         </div>
-        
-        <button class="pirate-btn" id="goToLastWatchedBtn">
-            🏴‍☠️ Ir para o último assistido ⚓
-        </button>
-    </div>
 
-    <div class="json-option">
-        <span>📁 Fonte:</span>
-        <select id="dataSourceSelect">
-            <option value="sheet" selected>📄 Google Sheets</option>
-            <option value="external">📄 matriz.json</option>
-            <option value="hardcoded">📝 Hardcoded</option>
-        </select>
-        <span class="file-status" id="fileStatus">✅ Carregando...</span>
-    </div>
-
-    <div class="filter-bar">
-        <div class="filter-group">
-            <button class="filter-btn active-filter" data-filter="all">📋 Todos</button>
-            <button class="filter-btn" data-filter="Manga Canon">📖 Manga</button>
-            <button class="filter-btn" data-filter="Mixed Canon/Filler">🔄 Mixed</button>
-            <button class="filter-btn" data-filter="Anime Canon">✨ Anime</button>
-            <button class="filter-btn" data-filter="Filler">📺 Filler</button>
+        <div class="filter-bar">
+            <div class="filter-group">
+                <button class="filter-btn active-filter" data-filter="all">📋 Todos</button>
+                <button class="filter-btn" data-filter="Manga Canon">📖 Manga</button>
+                <button class="filter-btn" data-filter="Mixed Canon/Filler">🔄 Mixed</button>
+                <button class="filter-btn" data-filter="Anime Canon">✨ Anime</button>
+                <button class="filter-btn" data-filter="Filler">📺 Filler</button>
+            </div>
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar episódio..."
+                autocomplete="off" enterkeyhint="search">
         </div>
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar episódio..." autocomplete="off" enterkeyhint="search">
+
+        <div class="info-bar">
+            <div class="episode-count" id="displayCount"></div>
+            <div style="font-size:0.6rem;">✔️ Toque no checkbox</div>
+        </div>
+
+        <div id="cardsContainer" class="cards-container"></div>
+
+        <div class="table-wrapper">
+            <table id="episodeTable">
+                <thead>
+                    <tr>
+                        <th>EP</th>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Data</th>
+                        <th>Assistido</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <footer>⏱️ 18 min/ep • Dados sincronizados com Google Sheets</footer>
     </div>
 
-    <div class="info-bar">
-        <div class="episode-count" id="displayCount"></div>
-        <div style="font-size:0.6rem;">✔️ Toque no checkbox</div>
-    </div>
+    <button id="backToTopBtn" class="back-to-top" title="Voltar ao topo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m18 15-6-6-6 6" />
+        </svg>
+    </button>
 
-    <div id="cardsContainer" class="cards-container"></div>
-    
-    <div class="table-wrapper">
-        <table id="episodeTable">
-            <thead>
-                <tr>
-                    <th>EP</th>
-                    <th>Título</th>
-                    <th>Tipo</th>
-                    <th>Data</th> <th>Assistido</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
-
-    <footer>⏱️ 18 min/ep • Dados sincronizados com Google Sheets</footer>
-</div>
-
-<button id="backToTopBtn" class="back-to-top" title="Voltar ao topo">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m18 15-6-6-6 6"/>
-    </svg>
-</button>
-
-<script src="assets/js/main.js" defer></script>
+    <script src="assets/js/main.js" defer></script>
 </body>
+
 </html>

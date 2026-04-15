@@ -2,6 +2,8 @@ const SHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/1IhzmeXB9Dc7JRnOY
 const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwVvg8TrztE7j9CUVHgIu698tpfUAzIiNzoAEAROs6kqtT1nPBN72XiY0HzdMc26aE00w/exec"; // Substitua pelo URL do seu Web App
 const JSON_RAW_DATA = `[[1,"Eu sou Luffy! O homem que vai ser o Rei dos Piratas!","Manga Canon",true]]`;
 const EXTERNAL_JSON_FILE = "matriz.json";
+let spoilersHidden = localStorage.getItem("spoilersHidden") === "true";
+const toggleGlobalSpoilers = document.getElementById("toggleGlobalSpoilers");
 
 let episodes = [];
 let currentFilter = "all";
@@ -355,6 +357,7 @@ function renderCards() {
     const cardHtml = filtered
         .map((episode) => {
             const typeClass = getTypeClass(episode.type);
+            const watchedClass = episode.watched ? "is-watched" : "";
             return `
                 <div class="episode-card" data-ep="${episode.ep}">
                     <div class="card-header">
@@ -381,6 +384,7 @@ function renderCards() {
         const tableHtml = filtered
             .map((episode) => {
                 const typeClass = getTypeClass(episode.type);
+                const watchedClass = episode.watched ? "is-watched" : "";
                 return `
                     <tr class="episode-row" data-ep="${episode.ep}">
                         <td class="ep-col">${episode.ep}</td>
@@ -395,7 +399,7 @@ function renderCards() {
 
         tableBody.innerHTML = tableHtml;
     }
-    
+
     // Vincula os eventos após renderizar
     attachCheckboxListeners();
 }
@@ -414,13 +418,13 @@ function attachCheckboxListeners() {
             const epNum = Number(checkbox.dataset.epCheck);
             const episode = episodes.find((item) => item.ep === epNum);
             if (!episode) return;
-            
+
             episode.watched = checkbox.checked;
 
             // --- MELHORIA AQUI: Captura a data exata do clique no padrão BR ---
             const agora = new Date();
             const dataBrasilia = agora.toLocaleDateString('pt-BR');
-            
+
             // Atualizamos a data no objeto local para o feedback ser instantâneo
             episode.date = checkbox.checked ? dataBrasilia : "";
 
@@ -465,14 +469,44 @@ dataSourceSelect.addEventListener("change", async () => {
     }
 });
 
+function applySpoilerMode() {
+    const container = document.querySelector(".app-container");
+    const icon = document.getElementById("spoilerIcon");
+    const text = document.getElementById("spoilerText");
+
+    if (spoilersHidden) {
+        container.classList.add("spoilers-hidden");
+        if (icon) icon.textContent = "👁️";
+        if (text) text.textContent = "Mostrar Títulos";
+    } else {
+        container.classList.remove("spoilers-hidden");
+        if (icon) icon.textContent = "👁️";
+        if (text) text.textContent = "Ocultar Títulos";
+    }
+}
+
+// Função global para o clique no olho
+window.toggleSingleSpoiler = function (btn) {
+    const parent = btn.closest('.episode-card') || btn.closest('.episode-row');
+    parent.classList.toggle('reveal-title');
+};
+
+if (toggleGlobalSpoilers) {
+    toggleGlobalSpoilers.addEventListener("click", () => {
+        spoilersHidden = !spoilersHidden;
+        localStorage.setItem("spoilersHidden", spoilersHidden);
+        applySpoilerMode();
+    });
+}
+
 async function init() {
     dataSourceSelect.value = "sheet";
     const success = await loadEpisodes();
-    
+
     if (success && episodes.length > 0) {
         // COMENTE OU REMOVA a linha abaixo para não sobrescrever os dados da planilha com o cache local
         // loadWatchedStateFromStorage(); 
-        
+
         renderCards();
         updateStats();
     } else {
@@ -515,4 +549,5 @@ backToTopBtn.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
+applySpoilerMode();
 init();
