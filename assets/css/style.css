@@ -519,36 +519,40 @@ footer {
             right: 30px;
         }
     }
+}
 
-    /* Modo Spoiler - Força o blur em qualquer resolução */
-    .spoilers-hidden .episode-card .card-title,
-    .spoilers-hidden .episode-row td:nth-child(2),
-    .spoilers-hidden .episode-row td .title-cell {
-        filter: blur(8px) !important;
-        /* Aumentei para 8px para garantir */
-        opacity: 0.2 !important;
-        user-select: none !important;
-        pointer-events: none;
-        /* Evita selecionar o texto sem querer */
-    }
+/* --- ESTAS REGRAS DEVEM FICAR FORA DE QUALQUER MEDIA QUERY --- */
 
-    /* Revelar (Assistidos ou Clicados no Olho) */
-    .spoilers-hidden .episode-card.is-watched .card-title,
-    .spoilers-hidden .episode-row.is-watched td:nth-child(2),
-    .episode-card.reveal-title .card-title,
-    .episode-row.reveal-title td:nth-child(2) {
-        filter: blur(0) !important;
-        opacity: 1 !important;
-        user-select: auto !important;
-        pointer-events: auto !important;
-    }
+/* Modo Spoiler - Força o blur em qualquer resolução (PC e Mobile) */
+.spoilers-hidden .episode-card .card-title,
+.spoilers-hidden .episode-row td:nth-child(2) {
+    filter: blur(8px) !important;
+    opacity: 0.2 !important;
+    user-select: none !important;
+    pointer-events: none;
+}
 
-    /* Garante que o botão de olho NUNCA fique embaçado */
-    .eye-btn {
-        filter: blur(0) !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        position: relative;
-        z-index: 10;
-    }
+/* Revelar (Assistidos ou Clicados no Olho) */
+.spoilers-hidden .episode-card.is-watched .card-title,
+.spoilers-hidden .episode-row.is-watched td:nth-child(2),
+.episode-card.reveal-title .card-title,
+.episode-row.reveal-title td:nth-child(2) {
+    filter: blur(0) !important;
+    opacity: 1 !important;
+    user-select: auto !important;
+    pointer-events: auto !important;
+}
+
+/* Estilo do Botão de Olho */
+.eye-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #334155;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    filter: blur(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
