@@ -520,33 +520,35 @@ footer {
         }
     }
 
-    /* Modo Spoiler */
-    .spoilers-hidden .card-title,
-    .spoilers-hidden .table-wrapper td:nth-child(2) {
-        filter: blur(6px);
-        opacity: 0.3;
-        user-select: none;
-        transition: filter 0.3s ease;
+    /* Modo Spoiler - Força o blur em qualquer resolução */
+    .spoilers-hidden .episode-card .card-title,
+    .spoilers-hidden .episode-row td:nth-child(2),
+    .spoilers-hidden .episode-row td .title-cell {
+        filter: blur(8px) !important;
+        /* Aumentei para 8px para garantir */
+        opacity: 0.2 !important;
+        user-select: none !important;
+        pointer-events: none;
+        /* Evita selecionar o texto sem querer */
     }
 
-    /* Revelar se estiver assistido ou com classe de revelação individual */
-    .spoilers-hidden .is-watched .card-title,
+    /* Revelar (Assistidos ou Clicados no Olho) */
+    .spoilers-hidden .episode-card.is-watched .card-title,
     .spoilers-hidden .episode-row.is-watched td:nth-child(2),
-    .reveal-title .card-title,
-    .reveal-title td:nth-child(2) {
+    .episode-card.reveal-title .card-title,
+    .episode-row.reveal-title td:nth-child(2) {
         filter: blur(0) !important;
         opacity: 1 !important;
         user-select: auto !important;
+        pointer-events: auto !important;
     }
 
-    /* Estilo do botão de olho */
+    /* Garante que o botão de olho NUNCA fique embaçado */
     .eye-btn {
-        background: none;
-        border: 1px solid #334155;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-left: 8px;
-        font-size: 0.8rem;
-        padding: 2px 5px;
+        filter: blur(0) !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 10;
     }
 }
