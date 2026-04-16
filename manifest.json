@@ -1,10 +1,9 @@
 {
   "name": "One Piece Tracker",
-  "short_name": "One Piece",
+  "short_name": "One Piece Tracker",
   "description": "Controle seu progresso em One Piece",
   "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "any",
   "theme_color": "#0f172a",
   "background_color": "#0b1120",
   "icons": [
