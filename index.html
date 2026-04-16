@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,21 +11,15 @@
     <meta name="mobile-web-app-capable" content="yes">
 
     <title>One Piece Tracker</title>
-
     <link rel="manifest" href="manifest.json">
-
     <link rel="icon" type="image/x-icon" href="icone.ico?v=1">
-    <link rel="shortcut icon" type="image/x-icon" href="icone.ico?v=1">
-    <link rel="apple-touch-icon" href="icone.ico?v=1">
-
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
 <body>
-
     <div class="app-container">
         <div class="stats-panel">
-            <div class="title-area" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="title-area">
                 <div>
                     <h1>ONE PIECE</h1>
                     <p>Controle de episódios | Progresso salvo</p>
@@ -44,15 +37,10 @@
             </div>
 
             <div class="action-buttons" style="margin-top: 1rem;">
-                <button class="pirate-btn" id="toggleGlobalSpoilers"
-                    style="background: #334155; width: auto; padding: 10px 20px;">
-                    <span id="spoilerIcon">👁️</span> <span id="spoilerText">Ocultar Títulos</span>
+                <button class="pirate-btn" id="goToLastWatchedBtn">
+                    🏴‍☠️ Ir para o último assistido ⚓
                 </button>
             </div>
-
-            <button class="pirate-btn" id="goToLastWatchedBtn">
-                🏴‍☠️ Ir para o último assistido ⚓
-            </button>
         </div>
 
         <div class="json-option">
@@ -73,8 +61,8 @@
                 <button class="filter-btn" data-filter="Anime Canon">✨ Anime</button>
                 <button class="filter-btn" data-filter="Filler">📺 Filler</button>
             </div>
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar episódio..."
-                autocomplete="off" enterkeyhint="search">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar por número..."
+                autocomplete="off">
         </div>
 
         <div class="info-bar">
@@ -89,7 +77,6 @@
                 <thead>
                     <tr>
                         <th>EP</th>
-                        <th>Título</th>
                         <th>Tipo</th>
                         <th>Data</th>
                         <th>Assistido</th>
@@ -102,7 +89,7 @@
         <footer>⏱️ 18 min/ep • Dados sincronizados com Google Sheets</footer>
     </div>
 
-    <button id="backToTopBtn" class="back-to-top" title="Voltar ao topo">
+    <button id="backToTopBtn" class="back-to-top">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <path d="m18 15-6-6-6 6" />
