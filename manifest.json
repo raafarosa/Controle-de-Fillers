@@ -4,7 +4,7 @@
   "description": "Controle seu progresso em One Piece",
   "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "theme_color": "#0f172a",
   "background_color": "#0b1120",
   "icons": [
