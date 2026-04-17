@@ -23,6 +23,7 @@ const dataSourceSelect = document.getElementById("dataSourceSelect");
 const fileStatus = document.getElementById("fileStatus");
 const installBtn = document.getElementById("installBtn");
 const backToTopBtn = document.getElementById("backToTopBtn");
+const finishPredictionSpan = document.getElementById("finishPrediction");
 
 // --- INICIALIZAÇÃO E PWA ---
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -158,13 +159,55 @@ async function updateEpisodeStatus(ep, watched, date) {
 }
 
 function updateStats() {
-    const watched = episodes.filter(ep => ep.watched).length;
+    // 1. Cálculos Básicos
+    const watchedEpisodes = episodes.filter(ep => ep.watched);
+    const watchedCount = watchedEpisodes.length;
+
     const relevant = episodes.filter(ep => ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"].includes(ep.type));
     const missing = relevant.filter(ep => !ep.watched).length;
-    watchedCountSpan.textContent = watched;
+
+    // Atualiza os spans básicos de contagem e horas
+    watchedCountSpan.textContent = watchedCount;
     remainingCountSpan.textContent = missing;
-    hoursWatchedSpan.textContent = ((watched * 18) / 60).toFixed(1).replace('.', ',');
+    hoursWatchedSpan.textContent = ((watchedCount * 18) / 60).toFixed(1).replace('.', ',');
     totalRelevantSpan.textContent = ((missing * 18) / 60).toFixed(1).replace('.', ',');
+
+    // 2. Lógica Preditiva (Média Diária Real e Data Alvo)
+
+    // Filtramos apenas as datas válidas (DD/MM/AAAA) presentes nos episódios assistidos
+    const activeDates = watchedEpisodes
+        .map(ep => ep.date)
+        .filter(d => d && d.includes('/'));
+
+    // Criamos um Set para contar apenas dias únicos de atividade
+    const totalDaysActive = [...new Set(activeDates)].length;
+
+    if (totalDaysActive > 0 && missing > 0) {
+        // Média de episódios por dia que você realmente assistiu (considerando apenas dias ativos)
+        const avgPerDay = watchedCount / totalDaysActive;
+
+        // Quantos dias faltam para acabar os episódios relevantes (arredondado para cima)
+        const daysToFinish = Math.ceil(missing / avgPerDay);
+
+        // Cálculo da Data Final estimada
+        const estimatedDate = new Date(); // Data de hoje
+        estimatedDate.setDate(estimatedDate.getDate() + daysToFinish); // Soma os dias previstos
+
+        // Formatação manual para DD/MM/AAAA (Padrão Brasil)
+        const day = String(estimatedDate.getDate()).padStart(2, '0');
+        const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
+        const year = estimatedDate.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+
+        // Exibe o resultado final no card
+        finishPredictionSpan.textContent = `- ${daysToFinish} dias (${formattedDate})`;
+
+    } else if (missing === 0) {
+        finishPredictionSpan.textContent = "Concluído! 🎉";
+    } else {
+        // Caso não haja histórico de datas (ex: primeira vez usando o app)
+        finishPredictionSpan.textContent = "Aguardando dados...";
+    }
 }
 
 // --- FUNÇÃO CORRIGIDA: IR PARA O ÚLTIMO ASSISTIDO ---
