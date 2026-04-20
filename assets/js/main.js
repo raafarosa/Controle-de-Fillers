@@ -192,15 +192,14 @@ function renderCards() {
     if (tableBody) {
         tableBody.innerHTML = filtered.map(ep => `
             <tr class="episode-row ${ep.watched ? 'is-watched' : ''}" data-ep="${ep.ep}">
-                <td style="font-size: 0.65rem; font-weight: bold; color: #facc15; white-space: nowrap;">${getArco(ep.ep)}</td>
-                <td style="font-weight: 700;">${ep.ep}</td>
-                <td><span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span></td>
-                <td style="color:#94a3b8; font-size:0.8rem;">${ep.date || '-'}</td>
-                <td><input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}></td>
+                <td class="col-arco">${getArco(ep.ep)}</td>
+                <td class="col-ep">${ep.ep}</td>
+                <td style="text-align: center;"><span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span></td>
+                <td style="color:#94a3b8; font-size:0.8rem; text-align: center;">${ep.date || '-'}</td>
+                <td style="text-align: center;"><input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}></td>
             </tr>
         `).join("");
     }
-
     // Reativa os cliques nos checkboxes após redesenhar a tela
     attachCheckboxListeners();
 }

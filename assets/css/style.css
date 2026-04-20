@@ -313,3 +313,33 @@ footer {
     background: rgba(250, 204, 21, 0.15) !important;
     transition: 0.5s;
 }
+
+/* Ajustes de Alinhamento da Tabela */
+th,
+td {
+    text-align: center;
+    /* Centraliza cabeçalhos e células por padrão */
+}
+
+/* Coluna do Arco: Alinhada à esquerda e com largura mínima para não espalhar */
+.col-arco {
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: #facc15;
+    text-align: left !important;
+    width: 220px;
+    /* Ajusta o limite do arco */
+    min-width: 180px;
+}
+
+/* Coluna do EP: Fixa e próxima ao Arco */
+.col-ep {
+    font-weight: 700;
+    width: 80px;
+    text-align: center;
+}
+
+/* Garante que o cabeçalho acompanhe o alinhamento das colunas */
+table th:first-child {
+    text-align: left !important;
+}
