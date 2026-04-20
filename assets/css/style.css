@@ -14,7 +14,7 @@ body {
 }
 
 body {
-    background: linear-gradient(145deg, #0b1120 0%, #0f172a 100%);
+    background: #000000;
     color: #e2e8f0;
     padding: 12px;
 }
@@ -31,12 +31,12 @@ select {
 }
 
 .stats-panel {
-    background: rgba(15, 25, 45, 0.95);
+    background: #0a0a0a;
     backdrop-filter: blur(10px);
     border-radius: 1.2rem;
     padding: 1rem;
     margin-bottom: 1rem;
-    border: 1px solid rgba(255, 165, 0, 0.25);
+    border: 1px solid rgba(249, 115, 22, 0.15);
 }
 
 .title-area {
@@ -62,7 +62,7 @@ select {
 .title-area p {
     margin: 0.4rem 0 0 0;
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: #8e9196;
     font-weight: 500;
 }
 
@@ -82,7 +82,7 @@ select {
 }
 
 .stat {
-    background: #1e293b;
+    background: #121212;
     padding: 0.6rem 0.75rem;
     border-radius: 2rem;
     font-size: 0.75rem;
@@ -112,7 +112,7 @@ select {
 }
 
 .json-option {
-    background: #1e293b;
+    background: #121212;
     border-radius: 1rem;
     padding: 1rem;
     /* Padding mais generoso e uniforme */
@@ -144,7 +144,7 @@ select {
     flex-wrap: wrap;
     gap: 0.8rem;
     /* Aumenta o espaço entre os botões */
-    background: #1e293b;
+    background: #0a0a0a;
     padding: 1rem 1.2rem;
     /* Aumenta o espaço interno (respiro) */
     border-radius: 2rem;
@@ -154,7 +154,7 @@ select {
 }
 
 .info-bar {
-    background: #1e293b;
+    background: #0a0a0a;
     border-radius: 1rem;
     padding: 0.75rem 0.9rem;
     margin-bottom: 1rem;
@@ -180,8 +180,8 @@ select {
 }
 
 .search-box {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #121212;
+    border: 1px solid #1f1f1f;
     color: white;
     padding: 0.8rem 1rem;
     border-radius: 2rem;
@@ -190,10 +190,11 @@ select {
 }
 
 .episode-card {
-    background: #1e293b;
+    background: #121212;
     border-radius: 1rem;
     padding: 1rem;
     border-left: 4px solid #f97316;
+    border: 1px solid #1f1f1f;
     margin-bottom: 0.85rem;
 }
 
@@ -204,7 +205,7 @@ select {
 }
 
 .card-ep {
-    background: #0f172a;
+    background: #1a1a1a;
     padding: 0.35rem 0.85rem;
     border-radius: 999px;
     font-weight: 700;
@@ -254,7 +255,7 @@ th,
 td {
     padding: 0.85rem;
     text-align: left;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid #1f1f1f;
 }
 
 th {
@@ -273,7 +274,7 @@ th {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #1e293b;
+    background: #121212;
     color: #f97316;
     border: 2px solid #f97316;
     width: 50px;
@@ -307,7 +308,7 @@ th {
 footer {
     text-align: center;
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #8e9196;
     margin: 1.5rem 0;
 }
 

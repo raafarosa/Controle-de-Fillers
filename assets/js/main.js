@@ -157,28 +157,39 @@ function parseSheetRows(data) {
 // --- RENDERIZAÇÃO ---
 function renderCards() {
     const filtered = getFilteredEpisodes();
-    displayCountSpan.textContent = `${filtered.length} de ${episodes.length}`;
 
+    // Atualiza o contador de exibição
+    if (displayCountSpan) {
+        displayCountSpan.textContent = `📺 ${filtered.length} de ${episodes.length}`;
+    }
+
+    // Caso não encontre resultados
     if (filtered.length === 0) {
-        cardsContainer.innerHTML = '<div style="text-align:center;padding:2rem;">Nenhum encontrado 🔍</div>';
+        const emptyMsg = '<div style="text-align:center;padding:2rem;">Nenhum encontrado 🔍</div>';
+        cardsContainer.innerHTML = emptyMsg;
         if (tableBody) tableBody.innerHTML = "";
         return;
     }
 
-    // Mobile Cards (Renderização para Celular)
+    // --- RENDERIZAÇÃO MOBILE (CARDS) ---
     cardsContainer.innerHTML = filtered.map(ep => {
         const infoSagaArco = getArco(ep.ep);
+        // Formata a data em negrito se ela existir
+        const dataFormatada = ep.date
+            ? `<span style="font-size:0.7rem; color:#94a3b8;">📅 Concluído: <b style="color: #e2e8f0;">${ep.date}</b></span>`
+            : '';
+
         return `
             <div class="episode-card ${ep.watched ? 'is-watched' : ''}" data-ep="${ep.ep}">
                 <div style="font-size: 0.58rem; color: #facc15; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">
-                    ${infoSagaArco}
+                    📍 ${infoSagaArco}
                 </div>
                 <div class="card-header">
                     <span class="card-ep">EPISÓDIO ${ep.ep}</span>
                     <span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span>
                 </div>
                 <div class="card-footer" style="margin-top:0.5rem; display: flex; flex-direction:column; gap:8px;">
-                    ${ep.date ? `<span style="font-size:0.7rem; color:#94a3b8;">📅 Concluído: ${ep.date}</span>` : ''}
+                    ${dataFormatada}
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size:0.8rem;">Assistido</label>
                         <input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}>
@@ -188,19 +199,33 @@ function renderCards() {
         `;
     }).join("");
 
-    // Desktop Table (Renderização para Computador)
+    // --- RENDERIZAÇÃO DESKTOP (TABELA) ---
     if (tableBody) {
-        tableBody.innerHTML = filtered.map(ep => `
-            <tr class="episode-row ${ep.watched ? 'is-watched' : ''}" data-ep="${ep.ep}">
-                <td class="col-arco">${getArco(ep.ep)}</td>
-                <td class="col-ep">${ep.ep}</td>
-                <td style="text-align: center;"><span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span></td>
-                <td style="color:#94a3b8; font-size:0.8rem; text-align: center;">${ep.date || '-'}</td>
-                <td style="text-align: center;"><input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}></td>
-            </tr>
-        `).join("");
+        tableBody.innerHTML = filtered.map(ep => {
+            // Estilo da data na tabela com Negrito (Bold)
+            const dataCell = ep.date
+                ? `<b style="color: #e2e8f0;">${ep.date}</b>`
+                : '-';
+
+            return `
+                <tr class="episode-row ${ep.watched ? 'is-watched' : ''}" data-ep="${ep.ep}">
+                    <td class="col-arco">${getArco(ep.ep)}</td>
+                    <td class="col-ep">${ep.ep}</td>
+                    <td style="text-align: center;">
+                        <span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span>
+                    </td>
+                    <td style="color:#94a3b8; font-size:0.8rem; text-align: center;">
+                        ${dataCell}
+                    </td>
+                    <td style="text-align: center;">
+                        <input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}>
+                    </td>
+                </tr>
+            `;
+        }).join("");
     }
-    // Reativa os cliques nos checkboxes após redesenhar a tela
+
+    // Reativa os listeners de eventos
     attachCheckboxListeners();
 }
 
@@ -246,7 +271,7 @@ function updateStats() {
     // --- NOVA LÓGICA: ASSISTIDOS HOJE ---
     const hoje = new Date().toLocaleDateString('pt-BR');
     const assistidosHoje = episodes.filter(ep => ep.watched && ep.date === hoje).length;
-    
+
     const todayCountSpan = document.getElementById("todayCount");
     if (todayCountSpan) {
         todayCountSpan.textContent = assistidosHoje;
