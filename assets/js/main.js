@@ -137,19 +137,19 @@ async function loadFromGoogleSheet() {
 function parseSheetRows(data) {
     const rows = data.table.rows.map(row => row.c.map(cell => cell?.v ?? ""));
     const rawRows = typeof rows[0][0] === "string" ? rows.slice(1) : rows;
-    
+
     return rawRows.map(item => {
         let formattedDate = "";
         if (item[4]) {
             if (typeof item[4] === "string" && item[4].includes("Date")) {
-                const dVal = item[4].match(/\d+/g); 
-                
+                const dVal = item[4].match(/\d+/g);
+
                 // REMOVEMOS O -1 DAQUI:
                 // Se o log diz que 20/03 é hoje (20/04), 
                 // é porque o dVal[1] já vem como 3 (Março no JS).
                 formattedDate = new Date(dVal[0], dVal[1], dVal[2]).toLocaleDateString('pt-BR');
-            } else { 
-                formattedDate = new Date(item[4]).toLocaleDateString('pt-BR'); 
+            } else {
+                formattedDate = new Date(item[4]).toLocaleDateString('pt-BR');
             }
         }
         return {
