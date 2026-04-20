@@ -3,6 +3,75 @@ const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwVvg8TrztE7j
 const JSON_RAW_DATA = `[[1,"Eu sou Luffy! O homem que vai ser o Rei dos Piratas!","Manga Canon",true]]`;
 const EXTERNAL_JSON_FILE = "matriz.json";
 
+const MAPA_ARCOS_NETFLIX = [
+    // 1. Saga East Blue
+    { arco: "Romance Dawn", saga: "Saga East Blue", fim: 3 },
+    { arco: "Orange Town", saga: "Saga East Blue", fim: 8 },
+    { arco: "Vila Syrup", saga: "Saga East Blue", fim: 18 },
+    { arco: "Baratie", saga: "Saga East Blue", fim: 30 },
+    { arco: "Arlong Park", saga: "Saga East Blue", fim: 44 },
+    { arco: "Bando do Buggy", saga: "Saga East Blue", fim: 47 },
+    { arco: "Loguetown", saga: "Saga East Blue", fim: 53 },
+    { arco: "Dragão Milenar (F)", saga: "Saga East Blue", fim: 61 },
+    // 2. Saga Alabasta
+    { arco: "Reverse Mountain", saga: "Saga Alabasta", fim: 63 },
+    { arco: "Whiskey Peak", saga: "Saga Alabasta", fim: 67 },
+    { arco: "Coby e Helmeppo", saga: "Saga Alabasta", fim: 69 },
+    { arco: "Little Garden", saga: "Saga Alabasta", fim: 77 },
+    { arco: "Ilha Drum", saga: "Saga Alabasta", fim: 91 },
+    { arco: "Alabasta", saga: "Saga Alabasta", fim: 130 },
+    { arco: "Pós-Alabasta (F)", saga: "Saga Alabasta", fim: 135 },
+    // 3. Saga Skypiea
+    { arco: "Ilha Carneiro (F)", saga: "Saga Skypiea", fim: 138 },
+    { arco: "Ilha Ruluka (F)", saga: "Saga Skypiea", fim: 143 },
+    { arco: "Jaya", saga: "Saga Skypiea", fim: 152 },
+    { arco: "Skypiea", saga: "Saga Skypiea", fim: 195 },
+    { arco: "G-8 (F)", saga: "Saga Skypiea", fim: 206 },
+    // 4. Saga Water 7 / CP9
+    { arco: "Long Ring Long Land", saga: "Saga Water 7 / CP9", fim: 219 },
+    { arco: "Sonhos do Oceano (F)", saga: "Saga Water 7 / CP9", fim: 224 },
+    { arco: "Retorno do Foxy (F)", saga: "Saga Water 7 / CP9", fim: 228 },
+    { arco: "Water 7", saga: "Saga Water 7 / CP9", fim: 263 },
+    { arco: "Enies Lobby", saga: "Saga Water 7 / CP9", fim: 312 },
+    { arco: "Pós-Enies Lobby", saga: "Saga Water 7 / CP9", fim: 325 },
+    // 5. Saga Thriller Bark
+    { arco: "Adorável Terra (F)", saga: "Saga Thriller Bark", fim: 336 },
+    { arco: "Thriller Bark", saga: "Saga Thriller Bark", fim: 381 },
+    { arco: "Ilha Spa (F)", saga: "Saga Thriller Bark", fim: 384 },
+    // 6. Saga Guerra de Marineford
+    { arco: "Arquipélago Sabaody", saga: "Saga Marineford", fim: 407 },
+    { arco: "Amazon Lily", saga: "Saga Marineford", fim: 421 },
+    { arco: "Impel Down", saga: "Saga Marineford", fim: 458 },
+    { arco: "Marineford", saga: "Saga Marineford", fim: 489 },
+    { arco: "Pós-Guerra", saga: "Saga Marineford", fim: 516 },
+    // 7. Saga Ilha dos Homens-Peixe
+    { arco: "Retorno a Sabaody", saga: "Saga Homens-Peixe", fim: 522 },
+    { arco: "Ilha dos Homens-Peixe", saga: "Saga Homens-Peixe", fim: 574 },
+    // 8. Saga Aliança Pirata / Dressrosa
+    { arco: "Ambição de Z (F)", saga: "Saga Dressrosa", fim: 578 },
+    { arco: "Punk Hazard", saga: "Saga Dressrosa", fim: 625 },
+    { arco: "Recuperação do Caesar (F)", saga: "Saga Dressrosa", fim: 628 },
+    { arco: "Dressrosa", saga: "Saga Dressrosa", fim: 746 },
+    // 9. Saga Yonkou
+    { arco: "Minas de Prata (F)", saga: "Saga Yonkou", fim: 750 },
+    { arco: "Zou", saga: "Saga Yonkou", fim: 779 },
+    { arco: "Marinha Provisória (F)", saga: "Saga Yonkou", fim: 782 },
+    { arco: "Ilha Whole Cake", saga: "Saga Yonkou", fim: 877 },
+    { arco: "Levely", saga: "Saga Yonkou", fim: 891 },
+    { arco: "País de Wano", saga: "Saga Yonkou", fim: 1088 },
+    // 10. Saga Final
+    { arco: "Egghead", saga: "Saga Final", fim: 1116 },
+    { arco: "Elbaph", saga: "Saga Final", fim: 2500 }
+];
+
+function getArco(ep) {
+    const info = MAPA_ARCOS_NETFLIX.find(a => ep <= a.fim);
+    if (info) {
+        return `${info.saga}: ${info.arco}`;
+    }
+    return "Saga Desconhecida";
+}
+
 let episodes = [];
 let currentFilter = "all";
 let searchTerm = "";
@@ -88,7 +157,7 @@ function parseSheetRows(data) {
 // --- RENDERIZAÇÃO ---
 function renderCards() {
     const filtered = getFilteredEpisodes();
-    displayCountSpan.textContent = `📺 ${filtered.length} de ${episodes.length}`;
+    displayCountSpan.textContent = `${filtered.length} de ${episodes.length}`;
 
     if (filtered.length === 0) {
         cardsContainer.innerHTML = '<div style="text-align:center;padding:2rem;">Nenhum encontrado 🔍</div>';
@@ -96,34 +165,43 @@ function renderCards() {
         return;
     }
 
-    // Mobile Cards (Sem título e sem botão de olho)
-    cardsContainer.innerHTML = filtered.map(ep => `
-        <div class="episode-card ${ep.watched ? 'is-watched' : ''}" data-ep="${ep.ep}">
-            <div class="card-header">
-                <span class="card-ep">EPISÓDIO ${ep.ep}</span>
-                <span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span>
-            </div>
-            <div class="card-footer" style="margin-top:0.5rem; display: flex; flex-direction:column; gap:8px;">
-                ${ep.date ? `<span style="font-size:0.7rem; color:#94a3b8;">📅 Concluído: ${ep.date}</span>` : ''}
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <label style="font-size:0.8rem;">Assistido</label>
-                    <input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}>
+    // Mobile Cards (Renderização para Celular)
+    cardsContainer.innerHTML = filtered.map(ep => {
+        const infoSagaArco = getArco(ep.ep);
+        return `
+            <div class="episode-card ${ep.watched ? 'is-watched' : ''}" data-ep="${ep.ep}">
+                <div style="font-size: 0.58rem; color: #facc15; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">
+                    ${infoSagaArco}
+                </div>
+                <div class="card-header">
+                    <span class="card-ep">EPISÓDIO ${ep.ep}</span>
+                    <span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span>
+                </div>
+                <div class="card-footer" style="margin-top:0.5rem; display: flex; flex-direction:column; gap:8px;">
+                    ${ep.date ? `<span style="font-size:0.7rem; color:#94a3b8;">📅 Concluído: ${ep.date}</span>` : ''}
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="font-size:0.8rem;">Assistido</label>
+                        <input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}>
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join("");
+        `;
+    }).join("");
 
-    // Desktop Table (Removida a coluna de título)
+    // Desktop Table (Renderização para Computador)
     if (tableBody) {
         tableBody.innerHTML = filtered.map(ep => `
             <tr class="episode-row ${ep.watched ? 'is-watched' : ''}" data-ep="${ep.ep}">
-                <td>${ep.ep}</td>
+                <td style="font-size: 0.65rem; font-weight: bold; color: #facc15; white-space: nowrap;">${getArco(ep.ep)}</td>
+                <td style="font-weight: 700;">${ep.ep}</td>
                 <td><span class="type-badge ${getTypeClass(ep.type)}">${ep.type}</span></td>
                 <td style="color:#94a3b8; font-size:0.8rem;">${ep.date || '-'}</td>
                 <td><input type="checkbox" class="checkbox-custom" data-ep-check="${ep.ep}" ${ep.watched ? "checked" : ""}></td>
             </tr>
         `).join("");
     }
+
+    // Reativa os cliques nos checkboxes após redesenhar a tela
     attachCheckboxListeners();
 }
 
@@ -276,30 +354,24 @@ async function init() {
 }
 
 window.addEventListener("scroll", () => {
-    // Agora o botão aparece com 150px de scroll para ser útil mais rápido
-    if (window.scrollY > 150) { 
-        backToTopBtn.classList.add("show"); 
-    } else { 
-        backToTopBtn.classList.remove("show"); 
-    }
+    if (window.scrollY > 200) { backToTopBtn.classList.add("show"); }
+    else { backToTopBtn.classList.remove("show"); }
 });
 
-// --- LÓGICA DO BOTÃO INTELIGENTE (TOP / ÚLTIMO ASSISTIDO) ---
 backToTopBtn.addEventListener("click", () => {
-    // 1. Encontra o maior número de EP assistido (igual à sua lógica de navegação)
+    // 1. Encontra o último assistido
     const lastWatched = [...episodes]
         .filter(e => e.watched)
         .sort((a, b) => b.ep - a.ep)[0];
 
+    // Se não houver marcações, apenas sobe pro topo
     if (!lastWatched) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
     }
 
     const isDesktop = window.innerWidth > 768;
-    const selector = isDesktop
-        ? `.episode-row[data-ep="${lastWatched.ep}"]`
-        : `.episode-card[data-ep="${lastWatched.ep}"]`;
+    const selector = isDesktop ? `.episode-row[data-ep="${lastWatched.ep}"]` : `.episode-card[data-ep="${lastWatched.ep}"]`;
     const target = document.querySelector(selector);
 
     if (!target) {
@@ -307,25 +379,33 @@ backToTopBtn.addEventListener("click", () => {
         return;
     }
 
-    // 2. Cálculo de posição
     const rect = target.getBoundingClientRect();
-    const currentScroll = window.scrollY;
-
-    // Se o elemento já estiver centralizado na tela (margem de erro de 100px)
-    // Ou se estivermos muito perto do topo
     const isAtTarget = Math.abs(rect.top - (window.innerHeight / 2) + (rect.height / 2)) < 100;
 
-    if (isAtTarget || currentScroll < 100) {
-        // Se já está no alvo ou perto do topo, sobe tudo
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-        // Caso contrário, vai para o último assistido
+    // --- NOVA LÓGICA DE DIREÇÃO ---
+
+    // Se eu já estou no alvo OU se estou abaixo dele (rect.top < 0 significa que o alvo ficou pra cima)
+    if (isAtTarget || rect.top < 0) {
+        // Comportamento: Sobe (ou para o alvo ou para o topo da página)
+        if (isAtTarget || window.scrollY < 100) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            // Sobe para o último assistido que ficou para trás
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+            target.classList.add("highlight-episode");
+            setTimeout(() => target.classList.remove("highlight-episode"), 2200);
+        }
+    }
+    // Se o alvo está abaixo de mim (rect.top > 0) e eu estou no topo da página
+    else if (window.scrollY < 100) {
+        // Comportamento: Desce para o último assistido
         target.scrollIntoView({ behavior: "smooth", block: "center" });
-        
-        // Destaque visual
         target.classList.add("highlight-episode");
         setTimeout(() => target.classList.remove("highlight-episode"), 2200);
     }
+    // Caso padrão: segurança para sempre subir se estiver em dúvida
+    else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 });
-
 init();

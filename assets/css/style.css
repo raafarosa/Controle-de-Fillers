@@ -39,21 +39,37 @@ select {
     border: 1px solid rgba(255, 165, 0, 0.25);
 }
 
+.title-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
 .title-area h1 {
     margin: 0;
-    font-size: clamp(1.2rem, 2vw, 2rem);
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
     background: linear-gradient(135deg, #f97316, #facc15);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    text-align: center;
+    text-transform: uppercase;
+    font-weight: 900;
 }
 
 .title-area p {
-    margin: 0.5rem 0 0;
-    font-size: 0.9rem;
+    margin: 0.4rem 0 0 0;
+    font-size: 0.85rem;
     color: #94a3b8;
-    text-align: center;
+    font-weight: 500;
+}
+
+.install-area {
+    margin-top: 0.8rem;
+    display: flex;
+    justify-content: center;
 }
 
 .stats-cards {
