@@ -9,14 +9,22 @@
 
 html,
 body {
+    /* Garante que o fundo preto cubra toda a área, inclusive as bordas do sistema */
+    background-color: #000000 !important;
     margin: 0;
-    min-height: 100%;
+    padding: 0;
+    /* Isso ajuda o navegador a entender que o conteúdo deve usar a área total */
+    height: 100%;
+    overflow-x: hidden;
 }
 
 body {
-    background: #000000;
-    color: #e2e8f0;
-    padding: 12px;
+    /* Adiciona um respiro no topo para o conteúdo não bater na câmera, 
+       mas mantém o fundo preto atrás dela */
+    padding-top: env(safe-area-inset-top);
+    padding-left: 12px;
+    /* Seus paddings originais */
+    padding-right: 12px;
 }
 
 button,
