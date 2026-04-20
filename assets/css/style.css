@@ -9,17 +9,14 @@
 
 html,
 body {
-    background-color: #000000 !important;
     margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow-x: hidden;
+    min-height: 100%;
 }
 
 body {
-    padding-top: env(safe-area-inset-top);
-    padding-left: 12px;
-    padding-right: 12px;
+    background: #000000;
+    color: #e2e8f0;
+    padding: 12px;
 }
 
 button,
@@ -275,7 +272,7 @@ th {
 
 .back-to-top {
     position: fixed;
-    bottom: 30px; /* Subi um pouco para não bater nos gestos do Android */
+    bottom: 20px;
     right: 20px;
     background: #121212;
     color: #f97316;
@@ -283,35 +280,19 @@ th {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    
-    /* Centralização robusta */
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    /* Camada máxima e interatividade */
-    z-index: 9999 !important; 
+    z-index: 1000;
     cursor: pointer;
-    
-    /* Estado Inicial: Escondido e sem aceitar cliques */
-    opacity: 0;
     visibility: hidden;
-    pointer-events: none; 
-    
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); /* Sombra para destacar no OLED */
+    opacity: 0;
+    transition: 0.3s;
 }
 
 .back-to-top.show {
-    opacity: 1;
     visibility: visible;
-    pointer-events: auto; /* Volta a aceitar cliques quando aparece */
-    transform: translateY(-5px); /* Efeito leve de subida ao aparecer */
-}
-
-/* Ajuste para ícone interno não bugar */
-.back-to-top svg, .back-to-top i {
-    pointer-events: none;
+    opacity: 1;
 }
 
 @media (min-width: 769px) {
