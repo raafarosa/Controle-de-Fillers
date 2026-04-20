@@ -276,9 +276,56 @@ async function init() {
 }
 
 window.addEventListener("scroll", () => {
-    if (window.scrollY > 300) { backToTopBtn.classList.add("show"); }
-    else { backToTopBtn.classList.remove("show"); }
+    // Agora o botão aparece com 150px de scroll para ser útil mais rápido
+    if (window.scrollY > 150) { 
+        backToTopBtn.classList.add("show"); 
+    } else { 
+        backToTopBtn.classList.remove("show"); 
+    }
 });
-backToTopBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+// --- LÓGICA DO BOTÃO INTELIGENTE (TOP / ÚLTIMO ASSISTIDO) ---
+backToTopBtn.addEventListener("click", () => {
+    // 1. Encontra o maior número de EP assistido (igual à sua lógica de navegação)
+    const lastWatched = [...episodes]
+        .filter(e => e.watched)
+        .sort((a, b) => b.ep - a.ep)[0];
+
+    if (!lastWatched) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
+
+    const isDesktop = window.innerWidth > 768;
+    const selector = isDesktop
+        ? `.episode-row[data-ep="${lastWatched.ep}"]`
+        : `.episode-card[data-ep="${lastWatched.ep}"]`;
+    const target = document.querySelector(selector);
+
+    if (!target) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
+
+    // 2. Cálculo de posição
+    const rect = target.getBoundingClientRect();
+    const currentScroll = window.scrollY;
+
+    // Se o elemento já estiver centralizado na tela (margem de erro de 100px)
+    // Ou se estivermos muito perto do topo
+    const isAtTarget = Math.abs(rect.top - (window.innerHeight / 2) + (rect.height / 2)) < 100;
+
+    if (isAtTarget || currentScroll < 100) {
+        // Se já está no alvo ou perto do topo, sobe tudo
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+        // Caso contrário, vai para o último assistido
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        
+        // Destaque visual
+        target.classList.add("highlight-episode");
+        setTimeout(() => target.classList.remove("highlight-episode"), 2200);
+    }
+});
 
 init();
