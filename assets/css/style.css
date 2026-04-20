@@ -275,7 +275,7 @@ th {
 
 .back-to-top {
     position: fixed;
-    bottom: 20px;
+    bottom: 30px; /* Subi um pouco para não bater nos gestos do Android */
     right: 20px;
     background: #121212;
     color: #f97316;
@@ -283,19 +283,35 @@ th {
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    
+    /* Centralização robusta */
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    
+    /* Camada máxima e interatividade */
+    z-index: 9999 !important; 
     cursor: pointer;
-    visibility: hidden;
+    
+    /* Estado Inicial: Escondido e sem aceitar cliques */
     opacity: 0;
-    transition: 0.3s;
+    visibility: hidden;
+    pointer-events: none; 
+    
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); /* Sombra para destacar no OLED */
 }
 
 .back-to-top.show {
-    visibility: visible;
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* Volta a aceitar cliques quando aparece */
+    transform: translateY(-5px); /* Efeito leve de subida ao aparecer */
+}
+
+/* Ajuste para ícone interno não bugar */
+.back-to-top svg, .back-to-top i {
+    pointer-events: none;
 }
 
 @media (min-width: 769px) {
