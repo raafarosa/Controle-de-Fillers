@@ -74,9 +74,11 @@ select {
 
 .stats-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: 0.75rem;
     margin-top: 0.9rem;
+    color: #facc15;
+    font-weight: bold;
 }
 
 .stat {

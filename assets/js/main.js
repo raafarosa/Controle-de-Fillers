@@ -243,6 +243,15 @@ function updateStats() {
     const relevant = episodes.filter(ep => ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"].includes(ep.type));
     const missing = relevant.filter(ep => !ep.watched).length;
 
+    // --- NOVA LÓGICA: ASSISTIDOS HOJE ---
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const assistidosHoje = episodes.filter(ep => ep.watched && ep.date === hoje).length;
+    
+    const todayCountSpan = document.getElementById("todayCount");
+    if (todayCountSpan) {
+        todayCountSpan.textContent = assistidosHoje;
+    }
+
     // Atualiza os spans básicos de contagem e horas
     watchedCountSpan.textContent = watchedCount;
     remainingCountSpan.textContent = missing;
@@ -277,7 +286,7 @@ function updateStats() {
         const formattedDate = `${day}/${month}/${year}`;
 
         // Exibe o resultado final no card
-        finishPredictionSpan.textContent = `- ${daysToFinish} dias (${formattedDate})`;
+        finishPredictionSpan.textContent = `${daysToFinish} dias (${formattedDate})`;
 
     } else if (missing === 0) {
         finishPredictionSpan.textContent = "Concluído! 🎉";
@@ -286,7 +295,6 @@ function updateStats() {
         finishPredictionSpan.textContent = "Aguardando dados...";
     }
 }
-
 // --- FUNÇÃO CORRIGIDA: IR PARA O ÚLTIMO ASSISTIDO ---
 goToLastWatchedBtn.addEventListener("click", async () => {
     // 1. Encontra o maior número de EP que está marcado como assistido
