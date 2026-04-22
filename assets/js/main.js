@@ -60,7 +60,7 @@ const MAPA_ARCOS_NETFLIX = [
     { arco: "Levely", saga: "Saga Yonkou", fim: 891 },
     { arco: "País de Wano", saga: "Saga Yonkou", fim: 1088 },
     // 10. Saga Final
-    { arco: "Egghead", saga: "Saga Final", fim: 1116 },
+    { arco: "Egghead", saga: "Saga Final", fim: 1155 },
     { arco: "Elbaph", saga: "Saga Final", fim: 2500 }
 ];
 
