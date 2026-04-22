@@ -276,6 +276,16 @@ function updateStats() {
     const relevant = episodes.filter(ep => relevantTypes.includes(ep.type));
     const missing = relevant.filter(ep => !ep.watched).length;
 
+    // --- FUNÇÃO AUXILIAR PARA FORMATAR TEMPO (HHh MMmin) ---
+    const formatarTempo = (totalMinutes) => {
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        if (hours > 0) {
+            return `${hours}h${mins > 0 ? ' ' + mins + 'm' : ''}`;
+        }
+        return `${mins}m`;
+    };
+
     // --- LÓGICA: ASSISTIDOS HOJE ---
     const hojeString = new Date().toLocaleDateString('pt-BR');
     const assistidosHoje = episodes.filter(ep => {
@@ -284,9 +294,7 @@ function updateStats() {
     }).length;
 
     const todayCountSpan = document.getElementById("todayCount");
-    if (todayCountSpan) {
-        todayCountSpan.textContent = assistidosHoje;
-    }
+    if (todayCountSpan) todayCountSpan.textContent = assistidosHoje;
 
     // --- NOVA LÓGICA: PRÓXIMO ARCO (VIA MAPA) ---
     let nextArcSpan = document.getElementById("nextArcInfo");
@@ -296,35 +304,35 @@ function updateStats() {
         todayCountSpan.parentNode.appendChild(nextArcSpan);
     }
 
-    // Encontra o primeiro relevante não assistido (ex: seu ep 388)
     const firstUnwatched = relevant.find(ep => !ep.watched);
 
     if (firstUnwatched && nextArcSpan) {
         const epNumero = Number(firstUnwatched.ep);
-
-        // Busca no seu MAPA_ARCOS_NETFLIX em qual arco esse episódio se encaixa
         const arcoAtualInfo = MAPA_ARCOS_NETFLIX.find(a => epNumero <= a.fim);
 
         if (arcoAtualInfo) {
-            // Conta quantos episódios RELEVANTES existem entre o seu número atual e o fim do arco
             const remainingInArc = relevant.filter(ep => {
                 const n = Number(ep.ep);
                 return !ep.watched && n >= epNumero && n <= arcoAtualInfo.fim;
             }).length;
 
-            nextArcSpan.textContent = ` | Faltam ${remainingInArc} episódios para o próximo arco`;
+            const tempoArco = formatarTempo(remainingInArc * 18);
+            nextArcSpan.textContent = ` | Faltam ${remainingInArc} episódios para o próximo arco (~${tempoArco})`;
         }
     }
 
-    // --- RESTANTE DAS ESTATÍSTICAS ---
+    // --- RESTANTE DAS ESTATÍSTICAS (CARDS) ---
     if (typeof watchedCountSpan !== 'undefined') watchedCountSpan.textContent = watchedCount;
     if (typeof remainingCountSpan !== 'undefined') remainingCountSpan.textContent = `${missing} Episódios`;
 
     const hWatched = document.getElementById("hoursWatched");
     const hTotal = document.getElementById("totalRelevant");
-    if (hWatched) hWatched.textContent = ((watchedCount * 18) / 60).toFixed(1).replace('.', ',');
-    if (hTotal) hTotal.textContent = ((missing * 18) / 60).toFixed(1).replace('.', ',');
+    
+    // Aplicando a formatação de horas/minutos nos cards superiores
+    if (hWatched) hWatched.textContent = formatarTempo(watchedCount * 18);
+    if (hTotal) hTotal.textContent = formatarTempo(missing * 18);
 
+    // Lógica Preditiva
     const activeDates = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
     const totalDaysActive = [...new Set(activeDates)].length;
 
