@@ -272,22 +272,15 @@ function updateStats() {
     const watchedEpisodes = episodes.filter(ep => ep.watched);
     const watchedCount = watchedEpisodes.length;
 
-    const relevant = episodes.filter(ep => ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"].includes(ep.type));
+    const relevantTypes = ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"];
+    const relevant = episodes.filter(ep => relevantTypes.includes(ep.type));
     const missing = relevant.filter(ep => !ep.watched).length;
 
-    // --- NOVA LÓGICA: ASSISTIDOS HOJE (VERSÃO CORRIGIDA) ---
+    // --- LÓGICA: ASSISTIDOS HOJE ---
     const hojeString = new Date().toLocaleDateString('pt-BR');
-
     const assistidosHoje = episodes.filter(ep => {
-        // 1. Só interessa quem está marcado como assistido e tem data
         if (!ep.watched || !ep.date) return false;
-
-        // 2. Limpa possíveis espaços em branco ou resíduos de formatação
-        const dataLimpa = ep.date.trim();
-        const hojeLimpo = hojeString.trim();
-
-        // 3. Retorna a comparação
-        return dataLimpa === hojeLimpo;
+        return ep.date.trim() === hojeString.trim();
     }).length;
 
     const todayCountSpan = document.getElementById("todayCount");
@@ -295,49 +288,60 @@ function updateStats() {
         todayCountSpan.textContent = assistidosHoje;
     }
 
-    // Atualiza os spans básicos de contagem e horas
-    watchedCountSpan.textContent = watchedCount;
-    remainingCountSpan.textContent = missing;
-    hoursWatchedSpan.textContent = ((watchedCount * 18) / 60).toFixed(1).replace('.', ',');
-    totalRelevantSpan.textContent = ((missing * 18) / 60).toFixed(1).replace('.', ',');
+    // --- NOVA LÓGICA: PRÓXIMO ARCO (VIA MAPA) ---
+    let nextArcSpan = document.getElementById("nextArcInfo");
+    if (!nextArcSpan && todayCountSpan) {
+        nextArcSpan = document.createElement("span");
+        nextArcSpan.id = "nextArcInfo";
+        todayCountSpan.parentNode.appendChild(nextArcSpan);
+    }
 
-    // 2. Lógica Preditiva (Média Diária Real e Data Alvo)
+    // Encontra o primeiro relevante não assistido (ex: seu ep 388)
+    const firstUnwatched = relevant.find(ep => !ep.watched);
 
-    // Filtramos apenas as datas válidas (DD/MM/AAAA) presentes nos episódios assistidos
-    const activeDates = watchedEpisodes
-        .map(ep => ep.date)
-        .filter(d => d && d.includes('/'));
+    if (firstUnwatched && nextArcSpan) {
+        const epNumero = Number(firstUnwatched.ep);
 
-    // Criamos um Set para contar apenas dias únicos de atividade
+        // Busca no seu MAPA_ARCOS_NETFLIX em qual arco esse episódio se encaixa
+        const arcoAtualInfo = MAPA_ARCOS_NETFLIX.find(a => epNumero <= a.fim);
+
+        if (arcoAtualInfo) {
+            // Conta quantos episódios RELEVANTES existem entre o seu número atual e o fim do arco
+            const remainingInArc = relevant.filter(ep => {
+                const n = Number(ep.ep);
+                return !ep.watched && n >= epNumero && n <= arcoAtualInfo.fim;
+            }).length;
+
+            nextArcSpan.textContent = ` | Faltam ${remainingInArc} episódios para o próximo arco`;
+        }
+    }
+
+    // --- RESTANTE DAS ESTATÍSTICAS ---
+    if (typeof watchedCountSpan !== 'undefined') watchedCountSpan.textContent = watchedCount;
+    if (typeof remainingCountSpan !== 'undefined') remainingCountSpan.textContent = missing;
+    
+    const hWatched = document.getElementById("hoursWatched");
+    const hTotal = document.getElementById("totalRelevant");
+    if (hWatched) hWatched.textContent = ((watchedCount * 18) / 60).toFixed(1).replace('.', ',');
+    if (hTotal) hTotal.textContent = ((missing * 18) / 60).toFixed(1).replace('.', ',');
+
+    const activeDates = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
     const totalDaysActive = [...new Set(activeDates)].length;
 
     if (totalDaysActive > 0 && missing > 0) {
-        // Média de episódios por dia que você realmente assistiu (considerando apenas dias ativos)
         const avgPerDay = watchedCount / totalDaysActive;
-
-        // Quantos dias faltam para acabar os episódios relevantes (arredondado para cima)
         const daysToFinish = Math.ceil(missing / avgPerDay);
-
-        // Cálculo da Data Final estimada
-        const estimatedDate = new Date(); // Data de hoje
-        estimatedDate.setDate(estimatedDate.getDate() + daysToFinish); // Soma os dias previstos
-
-        // Formatação manual para DD/MM/AAAA (Padrão Brasil)
+        const estimatedDate = new Date();
+        estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
         const day = String(estimatedDate.getDate()).padStart(2, '0');
         const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
         const year = estimatedDate.getFullYear();
-        const formattedDate = `${day}/${month}/${year}`;
-
-        // Exibe o resultado final no card
-        finishPredictionSpan.textContent = `${daysToFinish} dias (${formattedDate})`;
-
-    } else if (missing === 0) {
-        finishPredictionSpan.textContent = "Concluído! 🎉";
-    } else {
-        // Caso não haja histórico de datas (ex: primeira vez usando o app)
-        finishPredictionSpan.textContent = "Aguardando dados...";
+        if (typeof finishPredictionSpan !== 'undefined') {
+            finishPredictionSpan.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
+        }
     }
 }
+
 // --- FUNÇÃO CORRIGIDA: IR PARA O ÚLTIMO ASSISTIDO ---
 goToLastWatchedBtn.addEventListener("click", async () => {
     // 1. Encontra o maior número de EP que está marcado como assistido
