@@ -319,7 +319,7 @@ function updateStats() {
     // --- RESTANTE DAS ESTATÍSTICAS ---
     if (typeof watchedCountSpan !== 'undefined') watchedCountSpan.textContent = watchedCount;
     if (typeof remainingCountSpan !== 'undefined') remainingCountSpan.textContent = `${missing} Episódios`;
-    
+
     const hWatched = document.getElementById("hoursWatched");
     const hTotal = document.getElementById("totalRelevant");
     if (hWatched) hWatched.textContent = ((watchedCount * 18) / 60).toFixed(1).replace('.', ',');
