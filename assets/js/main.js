@@ -1,7 +1,5 @@
 const SHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/1IhzmeXB9Dc7JRnOY3qGE1Ledbad8d7DW7MYCd-2xoY4/gviz/tq?tqx=out:json&gid=1622028477";
 const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwVvg8TrztE7j9CUVHgIu698tpfUAzIiNzoAEAROs6kqtT1nPBN72XiY0HzdMc26aE00w/exec";
-const JSON_RAW_DATA = `[[1,"Eu sou Luffy! O homem que vai ser o Rei dos Piratas!","Manga Canon",true]]`;
-const EXTERNAL_JSON_FILE = "matriz.json";
 
 const MAPA_ARCOS_NETFLIX = [
     // 1. Saga East Blue
