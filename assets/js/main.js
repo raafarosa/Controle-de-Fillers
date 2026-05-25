@@ -286,7 +286,7 @@ function updateStats() {
         return `${mins}m`;
     };
 
-    // --- NOVA LÓGICA: CALCULAR MÉDIA DOS ÚLTIMOS 15 DIAS CORRIDOS ---
+    // --- LÓGICA: CALCULAR MÉDIA DOS ÚLTIMOS 15 DIAS CORRIDOS ---
     const hoje = new Date();
     hoje.setHours(23, 59, 59, 999);
     
@@ -294,7 +294,6 @@ function updateStats() {
     dataLimite.setDate(hoje.getDate() - 15);
     dataLimite.setHours(0, 0, 0, 0);
 
-    // Filtra apenas os episódios assistidos nos últimos 15 dias
     const epsUltimos15Dias = watchedEpisodes.filter(ep => {
         if (!ep.date || !ep.date.includes('/')) return false;
         const [dia, mes, ano] = ep.date.split('/').map(Number);
@@ -302,12 +301,9 @@ function updateStats() {
         return dataEp >= dataLimite && dataEp <= hoje;
     });
 
-    // MUDANÇA AQUI: Dividimos o total de episódios direto por 15 (dias corridos)
-    // Se a planilha for nova ou não houver dados, o fallback de segurança evita divisão por zero
     let avgPerDay = epsUltimos15Dias.length / 15;
 
     if (avgPerDay === 0) {
-        // Fallback histórico geral em dias corridos se o usuário estiver em hiato total há mais de 15 dias
         const activeDatesGeral = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
         if (activeDatesGeral.length > 0) {
             const datasOrdenadas = activeDatesGeral.map(d => {
@@ -319,7 +315,7 @@ function updateStats() {
             const totalDiasCorridosGeral = Math.max(1, Math.ceil((hoje - primeiroDia) / (1000 * 60 * 60 * 24)));
             avgPerDay = watchedCount / totalDiasCorridosGeral;
         } else {
-            avgPerDay = 1; // Fallback mínimo padrão
+            avgPerDay = 1;
         }
     }
 
@@ -360,8 +356,11 @@ function updateStats() {
     }
 
     // --- RESTANTE DAS ESTATÍSTICAS (CARDS) ---
+    
+    // CORREÇÃO URGENTE: Mudança de Math.floor para Math.round para dar sensibilidade ao contador
     if (typeof watchedCountSpan !== 'undefined') {
-        const mediaTexto = avgPerDay > 0 ? ` (Média: ${avgPerDay.toFixed(1).replace('.', ',')} ep/dia)` : '';
+        const mediaArredondada = Math.round(avgPerDay);
+        const mediaTexto = mediaArredondada > 0 ? ` (Média: ${mediaArredondada} ep/dia)` : '';
         watchedCountSpan.textContent = `${watchedCount}${mediaTexto}`;
     }
     
