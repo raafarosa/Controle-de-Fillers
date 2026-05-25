@@ -286,8 +286,45 @@ function updateStats() {
         return `${mins}m`;
     };
 
+    // --- NOVA LÓGICA: CALCULAR MÉDIA DOS ÚLTIMOS 15 DIAS CORRIDOS ---
+    const hoje = new Date();
+    hoje.setHours(23, 59, 59, 999);
+    
+    const dataLimite = new Date();
+    dataLimite.setDate(hoje.getDate() - 15);
+    dataLimite.setHours(0, 0, 0, 0);
+
+    // Filtra apenas os episódios assistidos nos últimos 15 dias
+    const epsUltimos15Dias = watchedEpisodes.filter(ep => {
+        if (!ep.date || !ep.date.includes('/')) return false;
+        const [dia, mes, ano] = ep.date.split('/').map(Number);
+        const dataEp = new Date(ano, mes - 1, dia);
+        return dataEp >= dataLimite && dataEp <= hoje;
+    });
+
+    // MUDANÇA AQUI: Dividimos o total de episódios direto por 15 (dias corridos)
+    // Se a planilha for nova ou não houver dados, o fallback de segurança evita divisão por zero
+    let avgPerDay = epsUltimos15Dias.length / 15;
+
+    if (avgPerDay === 0) {
+        // Fallback histórico geral em dias corridos se o usuário estiver em hiato total há mais de 15 dias
+        const activeDatesGeral = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
+        if (activeDatesGeral.length > 0) {
+            const datasOrdenadas = activeDatesGeral.map(d => {
+                const [dia, mes, ano] = d.split('/').map(Number);
+                return new Date(ano, mes - 1, dia);
+            }).sort((a, b) => a - b);
+            
+            const primeiroDia = datasOrdenadas[0];
+            const totalDiasCorridosGeral = Math.max(1, Math.ceil((hoje - primeiroDia) / (1000 * 60 * 60 * 24)));
+            avgPerDay = watchedCount / totalDiasCorridosGeral;
+        } else {
+            avgPerDay = 1; // Fallback mínimo padrão
+        }
+    }
+
     // --- LÓGICA: ASSISTIDOS HOJE ---
-    const hojeString = new Date().toLocaleDateString('pt-BR');
+    const hojeString = hoje.toLocaleDateString('pt-BR');
     const assistidosHoje = episodes.filter(ep => {
         if (!ep.watched || !ep.date) return false;
         return ep.date.trim() === hojeString.trim();
@@ -305,7 +342,7 @@ function updateStats() {
     }
 
     const firstUnwatched = relevant.find(ep => !ep.watched);
-    let remainingInArcCount = 0; // Guardará o valor para usar na lógica preditiva abaixo
+    let remainingInArcCount = 0; 
 
     if (firstUnwatched && nextArcSpan) {
         const epNumero = Number(firstUnwatched.ep);
@@ -323,8 +360,14 @@ function updateStats() {
     }
 
     // --- RESTANTE DAS ESTATÍSTICAS (CARDS) ---
-    if (typeof watchedCountSpan !== 'undefined') watchedCountSpan.textContent = watchedCount;
-    if (typeof remainingCountSpan !== 'undefined') remainingCountSpan.textContent = `${missing} Episódios`;
+    if (typeof watchedCountSpan !== 'undefined') {
+        const mediaTexto = avgPerDay > 0 ? ` (Média: ${avgPerDay.toFixed(1).replace('.', ',')} ep/dia)` : '';
+        watchedCountSpan.textContent = `${watchedCount}${mediaTexto}`;
+    }
+    
+    if (typeof remainingCountSpan !== 'undefined') {
+        remainingCountSpan.textContent = `${missing} Episódios`;
+    }
 
     const hWatched = document.getElementById("hoursWatched");
     const hTotal = document.getElementById("totalRelevant");
@@ -333,12 +376,7 @@ function updateStats() {
     if (hTotal) hTotal.textContent = formatarTempo(missing * 18);
 
     // --- LÓGICA PREDITIVA DUPLA ---
-    const activeDates = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
-    const totalDaysActive = [...new Set(activeDates)].length;
-
-    if (totalDaysActive > 0 && missing > 0) {
-        const avgPerDay = watchedCount / totalDaysActive;
-
+    if (missing > 0 && avgPerDay > 0) {
         // 1. Previsão para o Final do Anime (Geral)
         const daysToFinish = Math.ceil(missing / avgPerDay);
         const estimatedDate = new Date();
@@ -347,7 +385,7 @@ function updateStats() {
         const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
         const year = estimatedDate.getFullYear();
 
-        // 2. Previsão para o Próximo Arco (Baseado na mesma média)
+        // 2. Previsão para o Próximo Arco
         let nextArcPredictionText = "";
         if (remainingInArcCount > 0) {
             const daysToNextArc = Math.ceil(remainingInArcCount / avgPerDay);
