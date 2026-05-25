@@ -351,3 +351,11 @@ td {
 table th:first-child {
     text-align: left !important;
 }
+
+#ProgressBar {
+    font-family: system-ui, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+    letter-spacing: 0px; /* Deixa os blocos colados e contínuos */
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+}

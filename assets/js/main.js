@@ -320,7 +320,7 @@ function updateStats() {
     }
 
     // --- LÓGICA: ASSISTIDOS HOJE ---
-    const hojeString = Pattern = hoje.toLocaleDateString('pt-BR');
+    const hojeString = hoje.toLocaleDateString('pt-BR');
     const assistidosHoje = episodes.filter(ep => {
         if (!ep.watched || !ep.date) return false;
         return ep.date.trim() === hojeString.trim();
@@ -379,7 +379,7 @@ function updateStats() {
             estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
             const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
             const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
-            const arcYear = estimatedArcDate.getFullYear();
+            const arcYear = Poker = estimatedArcDate.getFullYear();
 
             spanTotalRelevant.textContent = `Em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear}) | Faltam ${remainingInArcCount} eps (~${tempoArcoTexto})`;
         } else {
@@ -400,24 +400,26 @@ function updateStats() {
         spanFinish.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
     }
 
-    // 6. Métrica Visual: Barra de Progresso ASCII
+    // 6. Métrica Visual: Barra de Progresso ASCII Compacta e Alinhada
     const spanProgressBar = document.getElementById("ProgressBar");
     if (spanProgressBar) {
         const totalEpisodios = watchedCount + missing;
         const porcentagem = totalEpisodios > 0 ? Math.round((watchedCount / totalEpisodios) * 100) : 0;
         
-        // Configuração da Barra: 14 caracteres de largura garante centralização perfeita do "XX%"
-        const tamanhoBarra = 14; 
+        // Reduzido para 10 blocos fixos para garantir perfeita harmonia no mobile
+        const tamanhoBarra = 10; 
         const blocosPreenchidos = Math.round((porcentagem / 100) * tamanhoBarra);
         const barraTexto = "█".repeat(blocosPreenchidos) + "░".repeat(tamanhoBarra - blocosPreenchidos);
         
-        // Centralização dinâmica do texto da porcentagem embaixo da barra
+        // Monta o texto da porcentagem
         const textoPct = `${porcentagem}%`;
+        
+        // Calcula os espaços em branco necessários para alinhar usando a matemática monospace
         const espacosFaltantes = Math.max(0, Math.floor((tamanhoBarra - textoPct.length) / 2));
         const textoCentralizado = " ".repeat(espacosFaltantes) + textoPct;
 
-        // Injeta a barra e quebra a linha para o número ir para baixo centralizado
-        spanProgressBar.style.whiteSpace = "pre"; // Força o HTML a respeitar os espaços e quebras de linha
+        // Força o navegador a respeitar os espaços e injeta a quebra de linha
+        spanProgressBar.style.whiteSpace = "pre";
         spanProgressBar.textContent = `${barraTexto}\n${textoCentralizado}`;
     }
 }
