@@ -320,27 +320,18 @@ function updateStats() {
     }
 
     // --- LÓGICA: ASSISTIDOS HOJE ---
-    const hojeString = hoje.toLocaleDateString('pt-BR');
+    const hojeString = Pattern = hoje.toLocaleDateString('pt-BR');
     const assistidosHoje = episodes.filter(ep => {
         if (!ep.watched || !ep.date) return false;
         return ep.date.trim() === hojeString.trim();
     }).length;
 
-    const todayCountSpan = document.getElementById("todayCount");
-    if (todayCountSpan) todayCountSpan.textContent = assistidosHoje;
-
-    // --- NOVA LÓGICA: PRÓXIMO ARCO (VIA MAPA) ---
-    let nextArcSpan = document.getElementById("nextArcInfo");
-    if (!nextArcSpan && todayCountSpan) {
-        nextArcSpan = document.createElement("span");
-        nextArcSpan.id = "nextArcInfo";
-        todayCountSpan.parentNode.appendChild(nextArcSpan);
-    }
-
+    // --- LÓGICA: PROGRESÃO DO ARCO (MICRO) ---
     const firstUnwatched = relevant.find(ep => !ep.watched);
     let remainingInArcCount = 0;
+    let tempoArcoTexto = "0m";
 
-    if (firstUnwatched && nextArcSpan) {
+    if (firstUnwatched) {
         const epNumero = Number(firstUnwatched.ep);
         const arcoAtualInfo = MAPA_ARCOS_NETFLIX.find(a => epNumero <= a.fim);
 
@@ -350,42 +341,38 @@ function updateStats() {
                 return !ep.watched && n >= epNumero && n <= arcoAtualInfo.fim;
             }).length;
 
-            const tempoArco = formatarTempo(remainingInArcCount * 18);
-            nextArcSpan.textContent = ` | Faltam ${remainingInArcCount} episódios para o próximo arco (~${tempoArco})`;
+            tempoArcoTexto = formatarTempo(remainingInArcCount * 18);
         }
     }
 
-    // --- RESTANTE DAS ESTATÍSTICAS (CARDS) ---
+    // =========================================================================
+    // --- ATUALIZAÇÃO EXCLUSIVA DOS VALORES DOS SPANS ---
+    // =========================================================================
 
-    // CORREÇÃO URGENTE: Mudança de Math.floor para Math.round para dar sensibilidade ao contador
-    if (typeof watchedCountSpan !== 'undefined') {
+    // 1. Episódios Assistidos: [538 (161h 24m)]
+    const spanWatched = document.getElementById("watchedCount");
+    if (spanWatched) {
+        const hWatchedTexto = formatarTempo(watchedCount * 18);
+        spanWatched.textContent = `${watchedCount} (${hWatchedTexto})`;
+    }
+
+    // 2. Faltam: [539 Episódios (~161h 42m)]
+    const spanRemaining = document.getElementById("remainingCount");
+    if (spanRemaining) {
+        const tempoRestanteGeral = formatarTempo(missing * 18);
+        spanRemaining.textContent = `${missing} Episódios (~${tempoRestanteGeral})`;
+    }
+
+    // 3. Ritmo: [4 Episódios | Média: 6 ep/dia]
+    const spanHoursWatched = document.getElementById("hoursWatched");
+    if (spanHoursWatched) {
         const mediaArredondada = Math.round(avgPerDay);
-        const mediaTexto = mediaArredondada > 0 ? ` (Média: ${mediaArredondada} ep/dia)` : '';
-        watchedCountSpan.textContent = `${watchedCount}${mediaTexto}`;
+        spanHoursWatched.textContent = `${assistidosHoje} Episódios | Média: ${mediaArredondada} ep/dia`;
     }
 
-    if (typeof remainingCountSpan !== 'undefined') {
-        remainingCountSpan.textContent = `${missing} Episódios`;
-    }
-
-    const hWatched = document.getElementById("hoursWatched");
-    const hTotal = document.getElementById("totalRelevant");
-
-    if (hWatched) hWatched.textContent = formatarTempo(watchedCount * 18);
-    if (hTotal) hTotal.textContent = formatarTempo(missing * 18);
-
-    // --- LÓGICA PREDITIVA DUPLA ---
-    if (missing > 0 && avgPerDay > 0) {
-        // 1. Previsão para o Final do Anime (Geral)
-        const daysToFinish = Math.ceil(missing / avgPerDay);
-        const estimatedDate = new Date();
-        estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
-        const day = String(estimatedDate.getDate()).padStart(2, '0');
-        const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
-        const year = estimatedDate.getFullYear();
-
-        // 2. Previsão para o Próximo Arco
-        let nextArcPredictionText = "";
+    // 4. Próximo arco: [Em 3 dias (28/05/2026) | Faltam 17 eps (~5h 6m)]
+    const spanTotalRelevant = document.getElementById("totalRelevant");
+    if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
             const daysToNextArc = Math.ceil(remainingInArcCount / avgPerDay);
             const estimatedArcDate = new Date();
@@ -394,15 +381,44 @@ function updateStats() {
             const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
             const arcYear = estimatedArcDate.getFullYear();
 
-            nextArcPredictionText = ` | Próximo arco em: ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
+            spanTotalRelevant.textContent = `Em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear}) | Faltam ${remainingInArcCount} eps (~${tempoArcoTexto})`;
         } else {
-            nextArcPredictionText = ` | Próximo arco em: 0 dias (Você já está mudando de arco!)`;
+            spanTotalRelevant.textContent = `0 dias (Você já está mudando de arco!)`;
         }
+    }
 
-        // Renderiza no Card de Previsão
-        if (typeof finishPredictionSpan !== 'undefined') {
-            finishPredictionSpan.textContent = `${daysToFinish} dias (${day}/${month}/${year})${nextArcPredictionText}`;
-        }
+    // 5. Semanais em: [90 dias (23/08/2026)]
+    const spanFinish = document.getElementById("finishPrediction");
+    if (spanFinish && missing > 0 && avgPerDay > 0) {
+        const daysToFinish = Math.ceil(missing / avgPerDay);
+        const estimatedDate = new Date();
+        estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
+        const day = String(estimatedDate.getDate()).padStart(2, '0');
+        const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
+        const year = estimatedDate.getFullYear();
+
+        spanFinish.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
+    }
+
+    // 6. Métrica Visual: Barra de Progresso ASCII
+    const spanProgressBar = document.getElementById("ProgressBar");
+    if (spanProgressBar) {
+        const totalEpisodios = watchedCount + missing;
+        const porcentagem = totalEpisodios > 0 ? Math.round((watchedCount / totalEpisodios) * 100) : 0;
+        
+        // Configuração da Barra: 14 caracteres de largura garante centralização perfeita do "XX%"
+        const tamanhoBarra = 14; 
+        const blocosPreenchidos = Math.round((porcentagem / 100) * tamanhoBarra);
+        const barraTexto = "█".repeat(blocosPreenchidos) + "░".repeat(tamanhoBarra - blocosPreenchidos);
+        
+        // Centralização dinâmica do texto da porcentagem embaixo da barra
+        const textoPct = `${porcentagem}%`;
+        const espacosFaltantes = Math.max(0, Math.floor((tamanhoBarra - textoPct.length) / 2));
+        const textoCentralizado = " ".repeat(espacosFaltantes) + textoPct;
+
+        // Injeta a barra e quebra a linha para o número ir para baixo centralizado
+        spanProgressBar.style.whiteSpace = "pre"; // Força o HTML a respeitar os espaços e quebras de linha
+        spanProgressBar.textContent = `${barraTexto}\n${textoCentralizado}`;
     }
 }
 
