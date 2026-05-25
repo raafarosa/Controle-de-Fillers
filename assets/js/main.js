@@ -305,19 +305,20 @@ function updateStats() {
     }
 
     const firstUnwatched = relevant.find(ep => !ep.watched);
+    let remainingInArcCount = 0; // Guardará o valor para usar na lógica preditiva abaixo
 
     if (firstUnwatched && nextArcSpan) {
         const epNumero = Number(firstUnwatched.ep);
         const arcoAtualInfo = MAPA_ARCOS_NETFLIX.find(a => epNumero <= a.fim);
 
         if (arcoAtualInfo) {
-            const remainingInArc = relevant.filter(ep => {
+            remainingInArcCount = relevant.filter(ep => {
                 const n = Number(ep.ep);
                 return !ep.watched && n >= epNumero && n <= arcoAtualInfo.fim;
             }).length;
 
-            const tempoArco = formatarTempo(remainingInArc * 18);
-            nextArcSpan.textContent = ` | Faltam ${remainingInArc} episódios para o próximo arco (~${tempoArco})`;
+            const tempoArco = formatarTempo(remainingInArcCount * 18);
+            nextArcSpan.textContent = ` | Faltam ${remainingInArcCount} episódios para o próximo arco (~${tempoArco})`;
         }
     }
 
@@ -328,24 +329,42 @@ function updateStats() {
     const hWatched = document.getElementById("hoursWatched");
     const hTotal = document.getElementById("totalRelevant");
     
-    // Aplicando a formatação de horas/minutos nos cards superiores
     if (hWatched) hWatched.textContent = formatarTempo(watchedCount * 18);
     if (hTotal) hTotal.textContent = formatarTempo(missing * 18);
 
-    // Lógica Preditiva
+    // --- LÓGICA PREDITIVA DUPLA ---
     const activeDates = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
     const totalDaysActive = [...new Set(activeDates)].length;
 
     if (totalDaysActive > 0 && missing > 0) {
         const avgPerDay = watchedCount / totalDaysActive;
+
+        // 1. Previsão para o Final do Anime (Geral)
         const daysToFinish = Math.ceil(missing / avgPerDay);
         const estimatedDate = new Date();
         estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
         const day = String(estimatedDate.getDate()).padStart(2, '0');
         const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
         const year = estimatedDate.getFullYear();
+
+        // 2. Previsão para o Próximo Arco (Baseado na mesma média)
+        let nextArcPredictionText = "";
+        if (remainingInArcCount > 0) {
+            const daysToNextArc = Math.ceil(remainingInArcCount / avgPerDay);
+            const estimatedArcDate = new Date();
+            estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
+            const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
+            const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
+            const arcYear = estimatedArcDate.getFullYear();
+            
+            nextArcPredictionText = ` | Próximo arco em: ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
+        } else {
+            nextArcPredictionText = ` | Próximo arco em: 0 dias (Você já está mudando de arco!)`;
+        }
+
+        // Renderiza no Card de Previsão
         if (typeof finishPredictionSpan !== 'undefined') {
-            finishPredictionSpan.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
+            finishPredictionSpan.textContent = `${daysToFinish} dias (${day}/${month}/${year})${nextArcPredictionText}`;
         }
     }
 }
