@@ -289,7 +289,7 @@ function updateStats() {
     // --- LÓGICA: CALCULAR MÉDIA DOS ÚLTIMOS 15 DIAS CORRIDOS ---
     const hoje = new Date();
     hoje.setHours(23, 59, 59, 999);
-    
+
     const dataLimite = new Date();
     dataLimite.setDate(hoje.getDate() - 15);
     dataLimite.setHours(0, 0, 0, 0);
@@ -310,7 +310,7 @@ function updateStats() {
                 const [dia, mes, ano] = d.split('/').map(Number);
                 return new Date(ano, mes - 1, dia);
             }).sort((a, b) => a - b);
-            
+
             const primeiroDia = datasOrdenadas[0];
             const totalDiasCorridosGeral = Math.max(1, Math.ceil((hoje - primeiroDia) / (1000 * 60 * 60 * 24)));
             avgPerDay = watchedCount / totalDiasCorridosGeral;
@@ -338,7 +338,7 @@ function updateStats() {
     }
 
     const firstUnwatched = relevant.find(ep => !ep.watched);
-    let remainingInArcCount = 0; 
+    let remainingInArcCount = 0;
 
     if (firstUnwatched && nextArcSpan) {
         const epNumero = Number(firstUnwatched.ep);
@@ -356,21 +356,21 @@ function updateStats() {
     }
 
     // --- RESTANTE DAS ESTATÍSTICAS (CARDS) ---
-    
+
     // CORREÇÃO URGENTE: Mudança de Math.floor para Math.round para dar sensibilidade ao contador
     if (typeof watchedCountSpan !== 'undefined') {
         const mediaArredondada = Math.round(avgPerDay);
         const mediaTexto = mediaArredondada > 0 ? ` (Média: ${mediaArredondada} ep/dia)` : '';
         watchedCountSpan.textContent = `${watchedCount}${mediaTexto}`;
     }
-    
+
     if (typeof remainingCountSpan !== 'undefined') {
         remainingCountSpan.textContent = `${missing} Episódios`;
     }
 
     const hWatched = document.getElementById("hoursWatched");
     const hTotal = document.getElementById("totalRelevant");
-    
+
     if (hWatched) hWatched.textContent = formatarTempo(watchedCount * 18);
     if (hTotal) hTotal.textContent = formatarTempo(missing * 18);
 
@@ -393,7 +393,7 @@ function updateStats() {
             const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
             const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
             const arcYear = estimatedArcDate.getFullYear();
-            
+
             nextArcPredictionText = ` | Próximo arco em: ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
         } else {
             nextArcPredictionText = ` | Próximo arco em: 0 dias (Você já está mudando de arco!)`;
