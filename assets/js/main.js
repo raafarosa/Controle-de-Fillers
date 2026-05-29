@@ -380,7 +380,7 @@ function updateStats() {
             const arcYear = estimatedArcDate.getFullYear(); // Corrigido bug de sintaxe aqui
 
             // Inversão aplicada conforme solicitado
-            spanTotalRelevant.textContent = `${remainingInArcCount} eps (~${tempoArcoTexto}) | Próximo arco em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
+            spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
         } else {
             spanTotalRelevant.textContent = `0 dias (Você já está mudando de arco!)`;
         }
