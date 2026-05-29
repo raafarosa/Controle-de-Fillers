@@ -347,28 +347,28 @@ function updateStats() {
     // --- ATUALIZAÇÃO EXCLUSIVA DOS VALORES DOS SPANS ---
     // =========================================================================
 
-    // 1. Episódios Assistidos: [538 (161h 24m)]
+    // 1. Episódios Assistidos
     const spanWatched = document.getElementById("watchedCount");
     if (spanWatched) {
         const hWatchedTexto = formatarTempo(watchedCount * 18);
         spanWatched.textContent = `${watchedCount} (${hWatchedTexto})`;
     }
 
-    // 2. Faltam: [539 Episódios (~161h 42m)]
+    // 2. Faltam
     const spanRemaining = document.getElementById("remainingCount");
     if (spanRemaining) {
         const tempoRestanteGeral = formatarTempo(missing * 18);
         spanRemaining.textContent = `${missing} Episódios (~${tempoRestanteGeral})`;
     }
 
-    // 3. Ritmo: [4 Episódios | Média: 6 ep/dia]
+    // 3. Ritmo
     const spanHoursWatched = document.getElementById("hoursWatched");
     if (spanHoursWatched) {
         const mediaArredondada = Math.round(avgPerDay);
         spanHoursWatched.textContent = `${assistidosHoje} Episódios | Média: ${mediaArredondada} ep/dia`;
     }
 
-    // 4. Próximo arco: [Em 3 dias (28/05/2026) | Faltam 17 eps (~5h 6m)]
+    // 4. Próximo arco
     const spanTotalRelevant = document.getElementById("totalRelevant");
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
@@ -377,15 +377,16 @@ function updateStats() {
             estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
             const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
             const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
-            const arcYear = Poker = estimatedArcDate.getFullYear();
+            const arcYear = estimatedArcDate.getFullYear(); // Corrigido bug de sintaxe aqui
 
-            spanTotalRelevant.textContent = `Em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear}) | Faltam ${remainingInArcCount} eps (~${tempoArcoTexto})`;
+            // Inversão aplicada conforme solicitado
+            spanTotalRelevant.textContent = `${remainingInArcCount} eps (~${tempoArcoTexto}) | Próximo arco em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
         } else {
             spanTotalRelevant.textContent = `0 dias (Você já está mudando de arco!)`;
         }
     }
 
-    // 5. Semanais em: [90 dias (23/08/2026)]
+    // 5. Semanais em
     const spanFinish = document.getElementById("finishPrediction");
     if (spanFinish && missing > 0 && avgPerDay > 0) {
         const daysToFinish = Math.ceil(missing / avgPerDay);
@@ -398,25 +399,21 @@ function updateStats() {
         spanFinish.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
     }
 
-    // 6. Métrica Visual: Barra de Progresso ASCII Compacta e Alinhada
+    // 6. Métrica Visual
     const spanProgressBar = document.getElementById("ProgressBar");
     if (spanProgressBar) {
         const totalEpisodios = watchedCount + missing;
         const porcentagem = totalEpisodios > 0 ? Math.round((watchedCount / totalEpisodios) * 100) : 0;
         
-        // Reduzido para 10 blocos fixos para garantir perfeita harmonia no mobile
         const tamanhoBarra = 10; 
         const blocosPreenchidos = Math.round((porcentagem / 100) * tamanhoBarra);
         const barraTexto = "█".repeat(blocosPreenchidos) + "░".repeat(tamanhoBarra - blocosPreenchidos);
         
-        // Monta o texto da porcentagem
         const textoPct = `${porcentagem}%`;
         
-        // Calcula os espaços em branco necessários para alinhar usando a matemática monospace
         const espacosFaltantes = Math.max(0, Math.floor((tamanhoBarra - textoPct.length) / 2));
         const textoCentralizado = " ".repeat(espacosFaltantes) + textoPct;
 
-        // Força o navegador a respeitar os espaços e injeta a quebra de linha
         spanProgressBar.style.whiteSpace = "pre";
         spanProgressBar.textContent = `${barraTexto}\n${textoCentralizado}`;
     }
