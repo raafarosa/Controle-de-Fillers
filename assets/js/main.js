@@ -399,24 +399,24 @@ function updateStats() {
         spanFinish.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
     }
 
-    // 6. Métrica Visual
-    const spanProgressBar = document.getElementById("ProgressBar");
-    if (spanProgressBar) {
-        const totalEpisodios = watchedCount + missing;
-        const porcentagem = totalEpisodios > 0 ? Math.round((watchedCount / totalEpisodios) * 100) : 0;
+    // // 6. Métrica Visual
+    // const spanProgressBar = document.getElementById("ProgressBar");
+    // if (spanProgressBar) {
+    //     const totalEpisodios = watchedCount + missing;
+    //     const porcentagem = totalEpisodios > 0 ? Math.round((watchedCount / totalEpisodios) * 100) : 0;
         
-        const tamanhoBarra = 10; 
-        const blocosPreenchidos = Math.round((porcentagem / 100) * tamanhoBarra);
-        const barraTexto = "█".repeat(blocosPreenchidos) + "░".repeat(tamanhoBarra - blocosPreenchidos);
+    //     const tamanhoBarra = 10; 
+    //     const blocosPreenchidos = Math.round((porcentagem / 100) * tamanhoBarra);
+    //     const barraTexto = "█".repeat(blocosPreenchidos) + "░".repeat(tamanhoBarra - blocosPreenchidos);
         
-        const textoPct = `${porcentagem}%`;
+    //     const textoPct = `${porcentagem}%`;
         
-        const espacosFaltantes = Math.max(0, Math.floor((tamanhoBarra - textoPct.length) / 2));
-        const textoCentralizado = " ".repeat(espacosFaltantes) + textoPct;
+    //     const espacosFaltantes = Math.max(0, Math.floor((tamanhoBarra - textoPct.length) / 2));
+    //     const textoCentralizado = " ".repeat(espacosFaltantes) + textoPct;
 
-        spanProgressBar.style.whiteSpace = "pre";
-        spanProgressBar.textContent = `${barraTexto}\n${textoCentralizado}`;
-    }
+    //     spanProgressBar.style.whiteSpace = "pre";
+    //     spanProgressBar.textContent = `${barraTexto}\n${textoCentralizado}`;
+    // }
 }
 
 // --- FUNÇÃO CORRIGIDA: IR PARA O ÚLTIMO ASSISTIDO ---
