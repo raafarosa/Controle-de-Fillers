@@ -368,19 +368,23 @@ function updateStats() {
         spanHoursWatched.textContent = `${assistidosHoje} Episódios | Média: ${mediaArredondada} ep/dia`;
     }
 
-    // 4. Próximo arco
+    // 4. Próximo arco - Com a trava do "Hoje!" integrada perfeitamente
     const spanTotalRelevant = document.getElementById("totalRelevant");
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
-            const daysToNextArc = Math.ceil(remainingInArcCount / avgPerDay);
-            const estimatedArcDate = new Date();
-            estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
-            const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
-            const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
-            const arcYear = estimatedArcDate.getFullYear(); // Corrigido bug de sintaxe aqui
+            // Regra aplicada: se faltarem 5 ou menos eps, OU a quantidade estiver dentro da média diária
+            if (remainingInArcCount <= 5 || remainingInArcCount <= avgPerDay) {
+                spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
+            } else {
+                const daysToNextArc = Math.ceil(remainingInArcCount / avgPerDay);
+                const estimatedArcDate = new Date();
+                estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
+                const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
+                const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
+                const arcYear = estimatedArcDate.getFullYear();
 
-            // Inversão aplicada conforme solicitado
-            spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
+                spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
+            }
         } else {
             spanTotalRelevant.textContent = `0 dias (Você já está mudando de arco!)`;
         }
@@ -404,13 +408,13 @@ function updateStats() {
     // if (spanProgressBar) {
     //     const totalEpisodios = watchedCount + missing;
     //     const porcentagem = totalEpisodios > 0 ? Math.round((watchedCount / totalEpisodios) * 100) : 0;
-        
+    //     
     //     const tamanhoBarra = 10; 
     //     const blocosPreenchidos = Math.round((porcentagem / 100) * tamanhoBarra);
     //     const barraTexto = "█".repeat(blocosPreenchidos) + "░".repeat(tamanhoBarra - blocosPreenchidos);
-        
+    //     
     //     const textoPct = `${porcentagem}%`;
-        
+    //     
     //     const espacosFaltantes = Math.max(0, Math.floor((tamanhoBarra - textoPct.length) / 2));
     //     const textoCentralizado = " ".repeat(espacosFaltantes) + textoPct;
 
