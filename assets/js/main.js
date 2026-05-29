@@ -361,18 +361,18 @@ function updateStats() {
         spanRemaining.textContent = `${missing} Episódios (~${tempoRestanteGeral})`;
     }
 
-    // 3. Ritmo
+    // 3. Ritmo - Tempo assistido hoje injetado com sucesso aqui
     const spanHoursWatched = document.getElementById("hoursWatched");
     if (spanHoursWatched) {
         const mediaArredondada = Math.round(avgPerDay);
-        spanHoursWatched.textContent = `${assistidosHoje} Episódios | Média: ${mediaArredondada} ep/dia`;
+        const tempoAssistidoHoje = formatarTempo(assistidosHoje * 18);
+        spanHoursWatched.textContent = `${assistidosHoje} Episódios (~${tempoAssistidoHoje}) | Média: ${mediaArredondada} ep/dia`;
     }
 
     // 4. Próximo arco - Com a trava do "Hoje!" integrada perfeitamente
     const spanTotalRelevant = document.getElementById("totalRelevant");
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
-            // Regra aplicada: se faltarem 5 ou menos eps, OU a quantidade estiver dentro da média diária
             if (remainingInArcCount <= 5 || remainingInArcCount <= avgPerDay) {
                 spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
             } else {
