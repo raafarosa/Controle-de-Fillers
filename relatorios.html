@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Analytics - Produção Operacional</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f0f12;
+            --card-bg: #16161a;
+            --primary-color: #ff6b00;
+            --primary-light: #ff9f43;
+            --text-color: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: #2e2e38;
+            --accent-blue: #0abde3;
+            --accent-green: #10ac84;
+            --accent-purple: #9b5de5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 25px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 35px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0 0 8px 0;
+            font-size: 32px;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .input-area {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-area textarea {
+            width: 100%;
+            height: 70px;
+            background-color: #0d0d11;
+            border: 1px solid #3f3f4e;
+            border-radius: 6px;
+            color: #fff;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .input-area textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn-processar {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            align-self: flex-end;
+            transition: background 0.2s;
+        }
+
+        .btn-processar:hover {
+            background-color: #e05e00;
+        }
+
+        .status-badge {
+            font-size: 13px;
+            color: var(--primary-light);
+            font-weight: 500;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 22px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-card h3 {
+            margin: 0 0 4px 0;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chart-card .subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .metrics-card {
+            background: linear-gradient(145deg, #16161a 0%, #111115 100%);
+            justify-content: flex-start;
+        }
+
+        .metrics-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .metric-item {
+            font-size: 14px;
+            color: #e2e8f0;
+            border-bottom: 1px dashed #22222b;
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .metric-value {
+            color: var(--primary-light);
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 15px;
+        }
+
+        .progress-container {
+            margin-top: auto;
+            background: #0d0d11;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #22222b;
+            text-align: center;
+        }
+
+        .progress-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .progress-bar-text {
+            font-family: monospace;
+            font-size: 22px;
+            color: var(--accent-blue);
+            letter-spacing: -2px;
+        }
+
+        .arcos-historia-lista {
+            max-height: 280px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+        }
+
+        .arcos-historia-lista::-webkit-scrollbar {
+            width: 6px;
+        }
+        .arcos-historia-lista::-webkit-scrollbar-thumb {
+            background-color: #3f3f4e;
+            border-radius: 4px;
+        }
+
+        .arco-historia-item {
+            background-color: #0d0d11;
+            border: 1px solid #22222b;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .arco-historia-nome {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .arco-historia-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .arco-historia-tempo {
+            font-family: monospace;
+            text-align: right;
+        }
+
+        .arco-historia-dias {
+            color: var(--primary-light);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-main">
+            <div>
+                <h1>Master Analytics - Produção Operacional</h1>
+                <p>Cole as informações copiadas da sua planilha no campo abaixo para processamento instantâneo</p>
+            </div>
+            <div class="status-badge" id="processStatus">Aguardando colagem de dados...</div>
+        </div>
+        
+        <div class="input-area">
+            <textarea id="csvDataInput" placeholder="Dica: Vá na sua planilha, selecione as células/colunas, copie (Ctrl+C) e cole aqui (Ctrl+V)..."></textarea>
+            <button class="btn-processar" onclick="processarTextoInjetado()">Processar e Sincronizar</button>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="chart-card">
+            <h3>1. Conteúdo Assistido por Tipo</h3>
+            <span class="subtitle">Volume e proporção real de episódios concluídos</span>
+            <div class="chart-container">
+                <canvas id="chartVolume"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card metrics-card">
+            <h3>2. Status e Métricas de Production</h3>
+            <span class="subtitle">Acompanhamento e projeção da jornada em tempo real</span>
+            
+            <div class="metrics-list">
+                <div class="metric-item">
+                    <span>Episódios Assistidos:</span>
+                    <span class="metric-value" id="mWatched">0 (0h 0m)</span>
+                </div>
+                <div class="metric-item">
+                    <span>Faltam:</span>
+                    <span class="metric-value" id="mMissing">0 Episódios (~0h 0m)</span>
+                </div>
+                <div class="metric-item">
+                    <span>Assistidos Hoje:</span>
+                    <span class="metric-value" id="mToday">0 Eps</span>
+                </div>
+                <div class="metric-item">
+                    <span>Recorde Diário:</span>
+                    <span class="metric-value" id="mRecordDay" style="color: var(--accent-purple);">Aguardando dados...</span>
+                </div>
+                <div class="metric-item">
+                    <span>Próximo arco:</span>
+                    <span class="metric-value" id="mNextArco" style="color: var(--accent-green);">Aguardando sincronização...</span>
+                </div>
+                <div class="metric-item">
+                    <span>Semanais em:</span>
+                    <span class="metric-value" id="mSemanais">Aguardando sincronização...</span>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-title">Progresso da Jornada</div>
+                <div class="progress-bar-text" id="mProgressBar">░░░░░░░░░░</div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>3. Linha do Tempo - Picos Semanais</h3>
+            <span class="subtitle">Volume de episódios concluídos agrupados por data de início da semana (Segunda-feira)</span>
+            <div class="chart-container">
+                <canvas id="chartWeeklyTimeline"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>4. Linha do Tempo - Histórico Mensal</h3>
+            <span class="subtitle">Volume de episódios concluídos agrupados por mês/ano</span>
+            <div class="chart-container">
+                <canvas id="chartTimeline"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>5. Distribuição por Dia da Semana</h3>
+            <span class="subtitle">Frequência e picos de consumo ao longo dos dias</span>
+            <div class="chart-container">
+                <canvas id="chartWeekdays"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>6. Horas Dedicadas por Categoria</h3>
+            <span class="subtitle">Tempo real estimado gasto (em horas) dentro de cada tipo de conteúdo</span>
+            <div class="chart-container">
+                <canvas id="chartHoursSpend"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>7. Densidade de Consumo Diário</h3>
+            <span class="subtitle">Frequência de episódios fechados nos dias em que você abriu o player</span>
+            <div class="chart-container">
+                <canvas id="chartDensity"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>8. Matriz de Status do Anime</h3>
+            <span class="subtitle">Comparativo acumulado entre assistidos e faltantes por tipo</span>
+            <div class="chart-container">
+                <canvas id="chartStatusMatriz"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>9. Linha do Tempo - Histórico Diário</h3>
+            <span class="subtitle">Projeção e oscilação real do volume diário de episódios assistidos</span>
+            <div class="chart-container">
+                <canvas id="chartDailyTimeline"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>10. Duração de Consumo por Arco</h3>
+            <span class="subtitle">Tempo decorrido (em dias corridos) para concluir cada arco mapeado</span>
+            <div class="chart-container" style="height: 160px; margin-bottom: 15px;">
+                <canvas id="chartArcDuration"></canvas>
+            </div>
+            <div class="arcos-historia-lista" id="arcHistoryContainer">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MAPA_ARCOS_NETFLIX = [
+        { arco: "Romance Dawn", saga: "Saga East Blue", fim: 3 },
+        { arco: "Orange Town", saga: "Saga East Blue", fim: 8 },
+        { arco: "Vila Syrup", saga: "Saga East Blue", fim: 18 },
+        { arco: "Baratie", saga: "Saga East Blue", fim: 30 },
+        { arco: "Arlong Park", saga: "Saga East Blue", fim: 44 },
+        { arco: "Bando do Buggy", saga: "Saga East Blue", fim: 47 },
+        { arco: "Loguetown", saga: "Saga East Blue", fim: 53 },
+        { arco: "Dragão Milenar (F)", saga: "Saga East Blue", fim: 61 },
+        { arco: "Reverse Mountain", saga: "Saga Alabasta", fim: 63 },
+        { arco: "Whiskey Peak", saga: "Saga Alabasta", fim: 67 },
+        { arco: "Coby e Helmeppo", saga: "Saga Alabasta", fim: 69 },
+        { arco: "Little Garden", saga: "Saga Alabasta", fim: 77 },
+        { arco: "Ilha Drum", saga: "Saga Alabasta", fim: 91 },
+        { arco: "Alabasta", saga: "Saga Alabasta", fim: 130 },
+        { arco: "Pós-Alabasta (F)", saga: "Saga Alabasta", fim: 135 },
+        { arco: "Ilha Carneiro (F)", saga: "Saga Skypiea", fim: 138 },
+        { arco: "Ilha Ruluka (F)", saga: "Saga Skypiea", fim: 143 },
+        { arco: "Jaya", saga: "Saga Skypiea", fim: 152 },
+        { arco: "Skypiea", saga: "Saga Skypiea", fim: 195 },
+        { arco: "G-8 (F)", saga: "Saga Skypiea", fim: 206 },
+        { arco: "Long Ring Long Land", saga: "Saga Water 7 / CP9", fim: 219 },
+        { arco: "Sonhos do Oceano (F)", saga: "Saga Water 7 / CP9", fim: 224 },
+        { arco: "Retorno do Foxy (F)", saga: "Saga Water 7 / CP9", fim: 228 },
+        { arco: "Water 7", saga: "Saga Water 7 / CP9", fim: 263 },
+        { arco: "Enies Lobby", saga: "Saga Water 7 / CP9", fim: 312 },
+        { arco: "Pós-Enies Lobby", saga: "Saga Water 7 / CP9", fim: 325 },
+        { arco: "Adorável Terra (F)", saga: "Saga Thriller Bark", fim: 336 },
+        { arco: "Thriller Bark", saga: "Saga Thriller Bark", fim: 381 },
+        { arco: "Ilha Spa (F)", saga: "Saga Thriller Bark", fim: 384 },
+        { arco: "Arquipélago Sabaody", saga: "Saga Marineford", fim: 407 },
+        { arco: "Amazon Lily", saga: "Saga Marineford", fim: 421 },
+        { arco: "Impel Down", saga: "Saga Marineford", fim: 458 },
+        { arco: "Marineford", saga: "Saga Marineford", fim: 489 },
+        { arco: "Pós-Guerra", saga: "Saga Marineford", fim: 516 },
+        { arco: "Retorno a Sabaody", saga: "Saga Homens-Peixe", fim: 522 },
+        { arco: "Ilha dos Homens-Peixe", saga: "Saga Homens-Peixe", fim: 574 },
+        { arco: "Ambição de Z (F)", saga: "Saga Dressrosa", fim: 578 },
+        { arco: "Punk Hazard", saga: "Saga Dressrosa", fim: 625 },
+        { arco: "Recuperação do Caesar (F)", saga: "Saga Dressrosa", fim: 628 },
+        { arco: "Dressrosa", saga: "Saga Dressrosa", fim: 746 },
+        { arco: "Minas de Prata (F)", saga: "Saga Yonkou", fim: 750 },
+        { arco: "Zou", saga: "Saga Yonkou", fim: 779 },
+        { arco: "Marinha Provisória (F)", saga: "Saga Yonkou", fim: 782 },
+        { arco: "Ilha Whole Cake", saga: "Saga Yonkou", fim: 877 },
+        { arco: "Levely", saga: "Saga Yonkou", fim: 891 },
+        { arco: "País de Wano", saga: "Saga Yonkou", fim: 1088 },
+        { arco: "Egghead", saga: "Saga Final", fim: 1155 },
+        { arco: "Elbaph", saga: "Saga Final", fim: 2500 }
+    ];
+
+    let charts = {};
+
+    function processarTextoInjetado() {
+        const rawText = document.getElementById("csvDataInput").value;
+        const statusEl = document.getElementById("processStatus");
+        
+        if (!rawText.trim()) {
+            statusEl.textContent = "Erro: Caixa de texto vazia!";
+            return;
+        }
+
+        statusEl.textContent = "Processando dados localmente...";
+        
+        const linhasBrutas = rawText.split(/\r?\n/);
+        let matrizDados = [];
+
+        const primeiraLinha = linhasBrutas[0];
+        const separador = primeiraLinha.split('\t').length > primeiraLinha.split(';').length ? '\t' : ';';
+
+        linhasBrutas.forEach(linha => {
+            if (linha.trim()) {
+                const colunas = linha.split(separador).map(c => c.replace(/^"|"$/g, '').trim());
+                matrizDados.push(colunas);
+            }
+        });
+
+        if (matrizDados.length < 2) {
+            statusEl.textContent = "Erro: Estrutura inválida inserida.";
+            return;
+        }
+
+        const cabecalho = matrizDados[0].map(c => c.toLowerCase());
+        const idxType = cabecalho.findIndex(c => c.includes("tipo"));
+        const idxWatched = cabecalho.findIndex(c => c.includes("assistido"));
+        const idxDate = cabecalho.findIndex(c => c.includes("data"));
+        
+        let idxEp = cabecalho.findIndex(c => c === "ep" || c.includes("episódio") || c === "id" || c.includes("nº"));
+        if (idxEp === -1) idxEp = 0;
+
+        if (idxType === -1 || idxWatched === -1 || idxDate === -1) {
+            statusEl.textContent = "Erro: Colunas 'Tipo', 'Assistido' ou 'Data' não encontradas.";
+            alert("Certifique-se de copiar a linha de cabeçalho da planilha contendo as colunas 'Tipo', 'Assistido' e 'Data'.");
+            return;
+        }
+
+        statusEl.textContent = `● Sincronizado localmente com sucesso!`;
+        executarCalculosPainel(matrizDados, idxType, idxWatched, idxDate, idxEp);
+    }
+
+    function obterSegundaFeiraTimestamp(d) {
+        const copia = new Date(d.getTime());
+        const diaSemana = copia.getDay();
+        const diferenca = diaSemana === 0 ? -6 : 1 - diaSemana;
+        copia.setDate(copia.getDate() + diferenca);
+        copia.setHours(0,0,0,0);
+        return copia.getTime();
+    }
+
+    function formatarDataBR(timestamp) {
+        const d = new Date(timestamp);
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        return `${dia}/${mes}/${d.getFullYear()}`;
+    }
+
+    function encontrarArcoPorEpisodio(numEp) {
+        return MAPA_ARCOS_NETFLIX.find((arco, index) => {
+            const inicio = index === 0 ? 1 : MAPA_ARCOS_NETFLIX[index - 1].fim + 1;
+            return numEp >= inicio && numEp <= arco.fim;
+        });
+    }
+
+    function executarCalculosPainel(linhas, idxType, idxWatched, idxDate, idxEp) {
+        let countWatched = 0;
+        let countMissing = 0;
+        let assistidosHoje = 0;
+
+        let assistidosPorTipo = {}; 
+        let matrizStatus = {}; 
+        let maratonasPorMes = {};
+        let maratonasPorSemanaData = {}; 
+        let ritmoDiaSemana = { "Segunda": 0, "Terça": 0, "Quarta": 0, "Quinta": 0, "Sexta": 0, "Sábado": 0, "Domingo": 0 };
+        let densidadeContagem = { "1-2 eps": 0, "3-5 eps": 0, "6-10 eps": 0, "11+ eps (Maratona)": 0 };
+        let maratonasPorDiaTS = {};
+
+        let trackingArcosDatas = {};
+        let episodesMappedForAvg = [];
+
+        const diasDaSemanaNomes = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+        const hoje = new Date();
+        hoje.setHours(0,0,0,0);
+
+        for (let i = 1; i < linhas.length; i++) {
+            const colunas = linhas[i];
+            if (colunas.length <= Math.max(idxType, idxWatched, idxDate)) continue;
+
+            const tipo = colunas[idxType] || "Indefinido";
+            const assistidoStr = colunas[idxWatched].toUpperCase();
+            const isWatched = (assistidoStr === "TRUE" || assistidoStr === "VERDADEIRO" || assistidoStr === "SIM" || assistidoStr === "1");
+            const dataStr = colunas[idxDate];
+            const numEp = parseInt(colunas[idxEp].replace(/\D/g, '')) || i; 
+
+            if (!matrizStatus[tipo]) matrizStatus[tipo] = { watched: 0, missing: 0 };
+
+            if (isWatched) {
+                countWatched++;
+                matrizStatus[tipo].watched++;
+                assistidosPorTipo[tipo] = (assistidosPorTipo[tipo] || 0) + 1;
+            } else {
+                countMissing++;
+                matrizStatus[tipo].missing++;
+            }
+
+            episodesMappedForAvg.push({
+                watched: isWatched,
+                type: tipo,
+                date: dataStr,
+                ep: numEp
+            });
+
+            if (isWatched && dataStr) {
+                let dataObjeto = null;
+                if (dataStr.includes("/")) {
+                    const parts = dataStr.split("/");
+                    if (parts.length === 3) dataObjeto = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+                } else if (dataStr.includes("-")) {
+                    dataObjeto = new Date(dataStr);
+                }
+
+                if (dataObjeto && !isNaN(dataObjeto.getTime())) {
+                    let dataComparacao = new Date(dataObjeto);
+                    dataComparacao.setHours(0,0,0,0);
+                    const currentTS = dataComparacao.getTime();
+                    
+                    if(currentTS === hoje.getTime()) {
+                        assistidosHoje++;
+                    }
+
+                    maratonasPorDiaTS[currentTS] = (maratonasPorDiaTS[currentTS] || 0) + 1;
+
+                    const arcoCorrespondente = encontrarArcoPorEpisodio(numEp);
+                    if (arcoCorrespondente) {
+                        const nomeArco = arcoCorrespondente.arco;
+                        if (!trackingArcosDatas[nomeArco]) {
+                            trackingArcosDatas[nomeArco] = { min: currentTS, max: currentTS };
+                        } else {
+                            if (currentTS < trackingArcosDatas[nomeArco].min) trackingArcosDatas[nomeArco].min = currentTS;
+                            if (currentTS > trackingArcosDatas[nomeArco].max) trackingArcosDatas[nomeArco].max = currentTS;
+                        }
+                    }
+
+                    const chaveMes = `${dataObjeto.getFullYear()}-${String(dataObjeto.getMonth() + 1).padStart(2, '0')}`;
+                    maratonasPorMes[chaveMes] = (maratonasPorMes[chaveMes] || 0) + 1;
+
+                    const tsSegunda = obterSegundaFeiraTimestamp(dataObjeto);
+                    maratonasPorSemanaData[tsSegunda] = (maratonasPorSemanaData[tsSegunda] || 0) + 1;
+
+                    const nomeDia = diasDaSemanaNomes[dataObjeto.getDay()];
+                    ritmoDiaSemana[nomeDia]++;
+                }
+            }
+        }
+
+        const dataLimite = new Date();
+        dataLimite.setDate(hoje.getDate() - 15);
+        dataLimite.setHours(0, 0, 0, 0);
+
+        const epsUltimos15Dias = episodesMappedForAvg.filter(ep => {
+            if (!ep.watched || !ep.date || !ep.date.includes('/')) return false;
+            const [dia, mes, ano] = ep.date.split('/').map(Number);
+            const dataEp = new Date(ano, mes - 1, dia);
+            return dataEp >= dataLimite && dataEp <= hoje;
+        });
+
+        let avgPerDay = epsUltimos15Dias.length / 15;
+
+        if (avgPerDay === 0) {
+            const activeDatesGeral = episodesMappedForAvg.filter(ep => ep.watched && ep.date && ep.date.includes('/')).map(ep => ep.date);
+            if (activeDatesGeral.length > 0) {
+                const datasOrdenadas = activeDatesGeral.map(d => {
+                    const [dia, mes, ano] = d.split('/').map(Number);
+                    return new Date(ano, mes - 1, dia);
+                }).sort((a, b) => a - b);
+                const totalDiasCorridosGeral = Math.max(1, Math.ceil((hoje - datasOrdenadas[0]) / (1000 * 60 * 60 * 24)));
+                avgPerDay = countWatched / totalDiasCorridosGeral;
+            } else {
+                avgPerDay = 1;
+            }
+        }
+
+        const relevantTypes = ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"];
+        const relevant = episodesMappedForAvg.filter(ep => relevantTypes.includes(ep.type));
+        const firstUnwatched = relevant.find(ep => !ep.watched);
+        let remainingInArcCount = 0;
+        let tempoArcoTexto = "0m";
+
+        if (firstUnwatched) {
+            const arcoAtualInfo = encontrarArcoPorEpisodio(firstUnwatched.ep);
+            if (arcoAtualInfo) {
+                remainingInArcCount = relevant.filter(ep => !ep.watched && ep.ep >= firstUnwatched.ep && ep.ep <= arcoAtualInfo.fim).length;
+                
+                const hrsArco = Math.floor((remainingInArcCount * 18) / 60);
+                const minsArco = (remainingInArcCount * 18) % 60;
+                tempoArcoTexto = hrsArco > 0 ? `${hrsArco}h ${minsArco}m` : `${minsArco}m`;
+            }
+        }
+
+        Object.values(maratonasPorDiaTS).forEach(qtd => {
+            if (qtd <= 2) densidadeContagem["1-2 eps"]++;
+            else if (qtd <= 5) densidadeContagem["3-5 eps"]++;
+            else if (qtd <= 10) densidadeContagem["6-10 eps"]++;
+            else densidadeContagem["11+ eps (Maratona)"]++;
+        });
+
+        let recordeEps = 0;
+        let recordeDataStr = "Nenhum registro";
+        Object.keys(maratonasPorDiaTS).forEach(ts => {
+            if (maratonasPorDiaTS[ts] > recordeEps) {
+                recordeEps = maratonasPorDiaTS[ts];
+                recordeDataStr = formatarDataBR(Number(ts));
+            }
+        });
+
+        const minVistos = countWatched * 18;
+        const hVistas = Math.floor(minVistos / 60);
+        const mVistasRestantes = minVistos % 60;
+        document.getElementById("mWatched").textContent = `${countWatched} (${hVistas}h ${mVistasRestantes}m)`;
+
+        const minFaltam = countMissing * 18;
+        const hFaltam = Math.floor(minFaltam / 60);
+        const mFaltamRestantes = minFaltam % 60;
+        document.getElementById("mMissing").textContent = `${countMissing} Episódios (~${hFaltam}h ${mFaltamRestantes}m)`;
+
+        const hrsHoje = Math.floor((assistidosHoje * 18) / 60);
+        const minsHoje = (assistidosHoje * 18) % 60;
+        const stringTempoHoje = hrsHoje > 0 ? `${hrsHoje}h ${minsHoje}m` : `${minsHoje}m`;
+        document.getElementById("mToday").textContent = `${assistidosHoje} Episódios (~${stringTempoHoje}) | Média: ${Math.round(avgPerDay)} ep/dia`;
+        
+        document.getElementById("mRecordDay").textContent = `${recordeEps} Eps em ${recordeDataStr}`;
+
+        const kpiNextArco = document.getElementById("mNextArco");
+        if (remainingInArcCount > 0) {
+            if (remainingInArcCount <= 5 || remainingInArcCount <= avgPerDay) {
+                kpiNextArco.textContent = `Faltam ${remainingInArcCount} eps (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
+                kpiNextArco.style.color = "var(--primary-light)";
+            } else {
+                const daysToNextArc = Math.ceil(remainingInArcCount / avgPerDay);
+                const estimatedArcDate = new Date();
+                estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
+                kpiNextArco.textContent = `Em ${daysToNextArc} dias (${formatarDataBR(estimatedArcDate.getTime())}) | Faltam ${remainingInArcCount} eps`;
+                kpiNextArco.style.color = "var(--accent-green)";
+            }
+        } else {
+            kpiNextArco.textContent = "Você já está mudando de arco!";
+        }
+
+        const missingRelevant = relevant.filter(ep => !ep.watched).length;
+        if (missingRelevant > 0 && avgPerDay > 0) {
+            const daysToFinish = Math.ceil(missingRelevant / avgPerDay);
+            const estimatedDate = new Date();
+            estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
+            document.getElementById("mSemanais").textContent = `${daysToFinish} dias (${formatarDataBR(estimatedDate.getTime())})`;
+        } else {
+            document.getElementById("mSemanais").textContent = "0 dias";
+        }
+
+        const totalGeral = countWatched + countMissing;
+        const pct = totalGeral > 0 ? (countWatched / totalGeral) : 0;
+        const totalBlocos = 10;
+        const marcados = Math.round(pct * totalBlocos);
+        const stringBarra = "█".repeat(marcados) + "░".repeat(totalBlocos - marcados);
+        document.getElementById("mProgressBar").textContent = stringBarra;
+
+        renderizarPainel(assistidosPorTipo, matrizStatus, maratonasPorMes, maratonasPorSemanaData, ritmoDiaSemana, densidadeContagem, maratonasPorDiaTS, trackingArcosDatas);
+    }
+
+    function renderizarPainel(volume, matriz, linhaTempoMes, linhaTempoSemanaData, semana, densidade, linhaTempoDiaTS, trackingArcosDatas) {
+        Object.keys(charts).forEach(key => {
+            if (charts[key]) charts[key].destroy();
+        });
+
+        const baseOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e2e8f0', font: { size: 11 } } } }
+        };
+
+        const axisStyles = {
+            scales: {
+                x: { ticks: { color: '#94a3b8' }, grid: { color: '#22222b' } },
+                y: { ticks: { color: '#94a3b8' }, grid: { color: '#22222b' } }
+            }
+        };
+
+        const paletaCores = ['#ff6b00', '#ff9f43', '#ee5253', '#10ac84', '#5f27cd'];
+
+        // 1. CONTEÚDO ASSISTIDO POR TIPO (DOUGHNUT)
+        charts.volume = new Chart(document.getElementById('chartVolume'), {
+            type: 'doughnut',
+            data: { labels: Object.keys(volume), datasets: [{ data: Object.values(volume), backgroundColor: paletaCores, borderColor: '#16161a' }] },
+            options: baseOptions
+        });
+
+        // 3. LINHA DO TEMPO SEMANAL (BAR)
+        const timestampsSemanas = Object.keys(linhaTempoSemanaData).sort((a,b) => Number(a) - Number(b));
+        const labelsSemanas = timestampsSemanas.map(ts => formatarDataBR(Number(ts)));
+        const valoresSemanas = timestampsSemanas.map(ts => linhaTempoSemanaData[ts]);
+        charts.weeklyTimeline = new Chart(document.getElementById('chartWeeklyTimeline'), {
+            type: 'bar',
+            data: { labels: labelsSemanas, datasets: [{ label: 'Episódios por Semana', data: valoresSemanas, backgroundColor: '#0abde3' }] },
+            options: { ...baseOptions, ...axisStyles }
+        });
+
+        // 4. LINHA DO TEMPO MENSAL (BAR)
+        const labelsMeses = Object.keys(linhaTempoMes).sort();
+        const valoresMeses = labelsMeses.map(m => linhaTempoMes[m]);
+        charts.timeline = new Chart(document.getElementById('chartTimeline'), {
+            type: 'bar',
+            data: { labels: labelsMeses, datasets: [{ label: 'Episódios por Mês', data: valoresMeses, backgroundColor: '#ff9f43' }] },
+            options: { ...baseOptions, ...axisStyles }
+        });
+
+        // 5. DISTRIBUIÇÃO POR DIA DA SEMANA (RADAR)
+        charts.weekdays = new Chart(document.getElementById('chartWeekdays'), {
+            type: 'radar',
+            data: { labels: Object.keys(semana), datasets: [{ label: 'Volume de Eps', data: Object.values(semana), backgroundColor: 'rgba(155, 93, 229, 0.2)', borderColor: '#9b5de5', pointBackgroundColor: '#9b5de5' }] },
+            options: { ...baseOptions, scales: { r: { grid: { color: '#22222b' }, angleLines: { color: '#22222b' }, ticks: { display: false } } } }
+        });
+
+        // 6. HORAS DEDICADAS POR CATEGORIA (BAR HORIZONTAL)
+        const labelsHoras = Object.keys(volume);
+        const valoresHoras = Object.values(volume).map(v => Number(((v * 18) / 60).toFixed(1)));
+        charts.hoursSpend = new Chart(document.getElementById('chartHoursSpend'), {
+            type: 'bar',
+            data: { labels: labelsHoras, datasets: [{ label: 'Horas Gastas', data: valoresHoras, backgroundColor: '#10ac84' }] },
+            options: { ...baseOptions, ...axisStyles, indexAxis: 'y' }
+        });
+
+        // 7. DENSIDADE DE CONSUMO DIÁRIO (PIE)
+        charts.density = new Chart(document.getElementById('chartDensity'), {
+            type: 'pie',
+            data: { labels: Object.keys(densidade), datasets: [{ data: Object.values(densidade), backgroundColor: ['#1dd1a1', '#ffea00', '#ff9f43', '#ee5253'], borderColor: '#16161a' }] },
+            options: baseOptions
+        });
+
+        // 8. MATRIZ DE STATUS (BAR ACUMULADA)
+        const tiposMatriz = Object.keys(matriz);
+        const dadosWatched = tiposMatriz.map(t => matriz[t].watched);
+        const dadosMissing = tiposMatriz.map(t => matriz[t].missing);
+        charts.statusMatriz = new Chart(document.getElementById('chartStatusMatriz'), {
+            type: 'bar',
+            data: { labels: tiposMatriz, datasets: [{ label: 'Assistidos', data: dadosWatched, backgroundColor: '#ff6b00' }, { label: 'Faltantes', data: dadosMissing, backgroundColor: '#2e2e38' }] },
+            options: { ...baseOptions, ...axisStyles, scales: { x: { stacked: true, ticks: { color: '#94a3b8' } }, y: { stacked: true, ticks: { color: '#94a3b8' } } } }
+        });
+
+        // 9. LINHA DO TEMPO DIÁRIA (LINE)
+        const timestampsDias = Object.keys(linhaTempoDiaTS).sort((a,b) => Number(a) - Number(b));
+        const labelsDias = timestampsDias.map(ts => formatarDataBR(Number(ts)));
+        const valoresDias = timestampsDias.map(ts => linhaTempoDiaTS[ts]);
+        charts.dailyTimeline = new Chart(document.getElementById('chartDailyTimeline'), {
+            type: 'line',
+            data: { labels: labelsDias, datasets: [{ label: 'Episódios no Dia', data: valoresDias, borderColor: '#ff6b00', backgroundColor: 'rgba(255, 107, 0, 0.1)', fill: true, tension: 0.3 }] },
+            options: { ...baseOptions, ...axisStyles }
+        });
+
+
+        // ==========================================
+        // TRATAMENTO DO CARD 10: HISTÓRICO DE ARCOS + CALCULO DE EPS
+        // ==========================================
+        const containerArcos = document.getElementById("arcHistoryContainer");
+        containerArcos.innerHTML = "";
+
+        let labelArcosGrafico = [];
+        let dataArcosGrafico = [];
+
+        // Filtra e renderiza apenas os arcos encontrados/processados no CSV inserido
+        MAPA_ARCOS_NETFLIX.forEach((arcoConfig, index, arrayConfig) => {
+            const nomeDoArco = arcoConfig.arco;
+            
+            if (trackingArcosDatas[nomeDoArco]) {
+                // 1. Lógica interna para descobrir dinamicamente quantos episódios tem esse arco
+                const inicioContagem = index === 0 ? 0 : arrayConfig[index - 1].fim;
+                const totalEpisodiosDoArco = arcoConfig.fim - inicioContagem;
+
+                // 2. Calcula os dias corridos de consumo
+                const minTS = trackingArcosDatas[nomeDoArco].min;
+                const maxTS = trackingArcosDatas[nomeDoArco].max;
+                const diffTime = Math.abs(maxTS - minTS);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                labelArcosGrafico.push(nomeDoArco);
+                dataArcosGrafico.push(diffDays);
+
+                // 3. Monta o bloco em HTML exatamente no layout que você aprovou, acoplando a string "- xx episódios"
+                const itemHtml = document.createElement("div");
+                itemHtml.className = "arco-historia-item";
+                itemHtml.innerHTML = `
+                    <div>
+                        <div class="arco-historia-nome">${nomeDoArco} - ${totalEpisodiosDoArco} episódios</div>
+                        <div class="arco-historia-meta">De ${formatarDataBR(minTS)} a ${formatarDataBR(maxTS)}</div>
+                    </div>
+                    <div class="arco-historia-tempo">
+                        <span class="arco-historia-dias">${diffDays}</span> ${diffDays === 1 ? 'dia' : 'dias'}
+                    </div>
+                `;
+                containerArcos.appendChild(itemHtml);
+            }
+        });
+
+        // 10. GRÁFICO DE DURACAO POR ARCO (LINHA DO CARD 10)
+        charts.arcDuration = new Chart(document.getElementById('chartArcDuration'), {
+            type: 'line',
+            data: { labels: labelArcosGrafico, datasets: [{ label: 'Dias corridos', data: dataArcosGrafico, borderColor: '#ff9f43', backgroundColor: 'rgba(255, 159, 67, 0.1)', fill: true, tension: 0.1 }] },
+            options: { ...baseOptions, ...axisStyles }
+        });
+    }
+</script>
+</body>
+</html>
