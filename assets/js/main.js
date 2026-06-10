@@ -288,9 +288,10 @@ function updateStats() {
     const hoje = new Date();
     hoje.setHours(23, 59, 59, 999);
 
+    // CORREÇÃO: Zerando as horas da data limite ANTES de subtrair os dias
     const dataLimite = new Date();
-    dataLimite.setDate(hoje.getDate() - 15);
     dataLimite.setHours(0, 0, 0, 0);
+    dataLimite.setDate(dataLimite.getDate() - 15);
 
     const epsUltimos15Dias = watchedEpisodes.filter(ep => {
         if (!ep.date || !ep.date.includes('/')) return false;
@@ -316,6 +317,10 @@ function updateStats() {
             avgPerDay = 1;
         }
     }
+
+    // CORREÇÃO: Definindo a média arredondada no topo para unificar a matemática dos cards
+    // Garante que se a média for maior que 0 mas arredondar para baixo (ex: 0.4), ela vire pelo menos 1 para não quebrar divisões.
+    const mediaArredondada = avgPerDay > 0 ? Math.max(1, Math.round(avgPerDay)) : 1;
 
     // --- LÓGICA: ASSISTIDOS HOJE ---
     const hojeString = hoje.toLocaleDateString('pt-BR');
@@ -361,22 +366,25 @@ function updateStats() {
         spanRemaining.textContent = `${missing} Episódios (~${tempoRestanteGeral})`;
     }
 
-    // 3. Ritmo - Tempo assistido hoje injetado com sucesso aqui
+    // 3. Ritmo
     const spanHoursWatched = document.getElementById("hoursWatched");
     if (spanHoursWatched) {
-        const mediaArredondada = Math.round(avgPerDay);
         const tempoAssistidoHoje = formatarTempo(assistidosHoje * 18);
         spanHoursWatched.textContent = `${assistidosHoje} Episódios (~${tempoAssistidoHoje}) | Média: ${mediaArredondada} ep/dia`;
     }
 
-    // 4. Próximo arco - Com a trava do "Hoje!" integrada perfeitamente
+    // 4. Próximo arco
     const spanTotalRelevant = document.getElementById("totalRelevant");
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
-            if (remainingInArcCount <= 5 || remainingInArcCount <= avgPerDay) {
+            // CORREÇÃO: "Hoje!" só ativa se os episódios restantes forem menores ou iguais ao que resta bater da meta hoje
+            const metaRestanteHoje = Math.max(0, mediaArredondada - assistidosHoje);
+            
+            if (remainingInArcCount <= 5 || remainingInArcCount <= metaRestanteHoje) {
                 spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
             } else {
-                const daysToNextArc = Math.ceil(remainingInArcCount / avgPerDay);
+                // CORREÇÃO: Usando a 'mediaArredondada' para alinhar os dias com a matemática da tela
+                const daysToNextArc = Math.ceil(remainingInArcCount / mediaArredondada);
                 const estimatedArcDate = new Date();
                 estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
                 const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
@@ -392,8 +400,9 @@ function updateStats() {
 
     // 5. Semanais em
     const spanFinish = document.getElementById("finishPrediction");
-    if (spanFinish && missing > 0 && avgPerDay > 0) {
-        const daysToFinish = Math.ceil(missing / avgPerDay);
+    if (spanFinish && missing > 0) {
+        // CORREÇÃO: Usando a 'mediaArredondada' aqui também para manter o sincronismo total
+        const daysToFinish = Math.ceil(missing / mediaArredondada);
         const estimatedDate = new Date();
         estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
         const day = String(estimatedDate.getDate()).padStart(2, '0');
@@ -402,25 +411,6 @@ function updateStats() {
 
         spanFinish.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
     }
-
-    // // 6. Métrica Visual
-    // const spanProgressBar = document.getElementById("ProgressBar");
-    // if (spanProgressBar) {
-    //     const totalEpisodios = watchedCount + missing;
-    //     const porcentagem = totalEpisodios > 0 ? Math.round((watchedCount / totalEpisodios) * 100) : 0;
-    //     
-    //     const tamanhoBarra = 10; 
-    //     const blocosPreenchidos = Math.round((porcentagem / 100) * tamanhoBarra);
-    //     const barraTexto = "█".repeat(blocosPreenchidos) + "░".repeat(tamanhoBarra - blocosPreenchidos);
-    //     
-    //     const textoPct = `${porcentagem}%`;
-    //     
-    //     const espacosFaltantes = Math.max(0, Math.floor((tamanhoBarra - textoPct.length) / 2));
-    //     const textoCentralizado = " ".repeat(espacosFaltantes) + textoPct;
-
-    //     spanProgressBar.style.whiteSpace = "pre";
-    //     spanProgressBar.textContent = `${barraTexto}\n${textoCentralizado}`;
-    // }
 }
 
 // --- FUNÇÃO CORRIGIDA: IR PARA O ÚLTIMO ASSISTIDO ---
