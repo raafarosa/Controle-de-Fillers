@@ -394,7 +394,7 @@ function updateStats() {
                            n <= arcoAtual.fim;
                 }).length;
 
-                spanCurrentArc.textContent = `${assistidosNoArco} episódios de "${arcoAtual.arco}"`;
+                spanCurrentArc.textContent = `${assistidosNoArco} episódios de ${arcoAtual.arco}`;
             } else {
                 spanCurrentArc.textContent = `0 episódios (Fora do mapa de arcos)`;
             }
