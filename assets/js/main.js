@@ -319,7 +319,6 @@ function updateStats() {
     }
 
     // CORREÇÃO: Definindo a média arredondada no topo para unificar a matemática dos cards
-    // Garante que se a média for maior que 0 mas arredondar para baixo (ex: 0.4), ela vire pelo menos 1 para não quebrar divisões.
     const mediaArredondada = avgPerDay > 0 ? Math.max(1, Math.round(avgPerDay)) : 1;
 
     // --- LÓGICA: ASSISTIDOS HOJE ---
@@ -349,7 +348,7 @@ function updateStats() {
     }
 
     // =========================================================================
-    // --- ATUALIZAÇÃO EXCLUSIVA DOS VALORES DOS SPANS ---
+    // --- ATUALIZAÇÃO EXCLUSIVA DOS VALORES DOS SPANS (ORDEM AJUSTADA) ---
     // =========================================================================
 
     // 1. Episódios Assistidos
@@ -366,24 +365,53 @@ function updateStats() {
         spanRemaining.textContent = `${missing} Episódios (~${tempoRestanteGeral})`;
     }
 
-    // 3. Ritmo
+    // 3. Ritmo (Assistidos Hoje)
     const spanHoursWatched = document.getElementById("hoursWatched");
     if (spanHoursWatched) {
         const tempoAssistidoHoje = formatarTempo(assistidosHoje * 18);
         spanHoursWatched.textContent = `${assistidosHoje} Episódios (~${tempoAssistidoHoje}) | Média: ${mediaArredondada} ep/dia`;
     }
 
-    // 4. Próximo arco
+    // 4. Assistidos no Arco
+    const spanCurrentArc = document.getElementById("currentArcProgress");
+    if (spanCurrentArc) {
+        const canonAssistidos = episodes.filter(ep => ep.watched && relevantTypes.includes(ep.type));
+
+        if (canonAssistidos.length > 0) {
+            const ultimoAssistido = canonAssistidos[canonAssistidos.length - 1];
+            const ultimoEpNum = Number(ultimoAssistido.ep);
+            const indexArco = MAPA_ARCOS_NETFLIX.findIndex(a => ultimoEpNum <= a.fim);
+
+            if (indexArco !== -1) {
+                const arcoAtual = MAPA_ARCOS_NETFLIX[indexArco];
+                const inicioArco = indexArco > 0 ? MAPA_ARCOS_NETFLIX[indexArco - 1].fim + 1 : 1;
+
+                const assistidosNoArco = episodes.filter(ep => {
+                    const n = Number(ep.ep);
+                    return ep.watched && 
+                           relevantTypes.includes(ep.type) && 
+                           n >= inicioArco && 
+                           n <= arcoAtual.fim;
+                }).length;
+
+                spanCurrentArc.textContent = `${assistidosNoArco} episódios de "${arcoAtual.arco}"`;
+            } else {
+                spanCurrentArc.textContent = `0 episódios (Fora do mapa de arcos)`;
+            }
+        } else {
+            spanCurrentArc.textContent = `0 episódios assistidos`;
+        }
+    }
+
+    // 5. Próximo arco (Faltam X episódios...)
     const spanTotalRelevant = document.getElementById("totalRelevant");
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
-            // CORREÇÃO: "Hoje!" só ativa se os episódios restantes forem menores ou iguais ao que resta bater da meta hoje
             const metaRestanteHoje = Math.max(0, mediaArredondada - assistidosHoje);
             
             if (remainingInArcCount <= 5 || remainingInArcCount <= metaRestanteHoje) {
                 spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
             } else {
-                // CORREÇÃO: Usando a 'mediaArredondada' para alinhar os dias com a matemática da tela
                 const daysToNextArc = Math.ceil(remainingInArcCount / mediaArredondada);
                 const estimatedArcDate = new Date();
                 estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
@@ -398,10 +426,9 @@ function updateStats() {
         }
     }
 
-    // 5. Semanais em
+    // 6. Semanais em
     const spanFinish = document.getElementById("finishPrediction");
     if (spanFinish && missing > 0) {
-        // CORREÇÃO: Usando a 'mediaArredondada' aqui também para manter o sincronismo total
         const daysToFinish = Math.ceil(missing / mediaArredondada);
         const estimatedDate = new Date();
         estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
