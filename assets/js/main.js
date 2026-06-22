@@ -284,23 +284,22 @@ function updateStats() {
         return `${mins}m`;
     };
 
-    // --- LÓGICA: CALCULAR MÉDIA DOS ÚLTIMOS 15 DIAS CORRIDOS ---
+    // --- LÓGICA: CALCULAR MÉDIA DOS ÚLTIMOS 10 DIAS CORRIDOS (SEMANA ESTENDIDA) ---
     const hoje = new Date();
     hoje.setHours(23, 59, 59, 999);
 
-    // CORREÇÃO: Zerando as horas da data limite ANTES de subtrair os dias
     const dataLimite = new Date();
     dataLimite.setHours(0, 0, 0, 0);
-    dataLimite.setDate(dataLimite.getDate() - 15);
+    dataLimite.setDate(dataLimite.getDate() - 10); // Atualizado de 15 para 10 dias
 
-    const epsUltimos15Dias = watchedEpisodes.filter(ep => {
+    const epsUltimos10Dias = watchedEpisodes.filter(ep => {
         if (!ep.date || !ep.date.includes('/')) return false;
         const [dia, mes, ano] = ep.date.split('/').map(Number);
         const dataEp = new Date(ano, mes - 1, dia);
         return dataEp >= dataLimite && dataEp <= hoje;
     });
 
-    let avgPerDay = epsUltimos15Dias.length / 15;
+    let avgPerDay = epsUltimos10Dias.length / 10; // Dividido por 10 dias agora
 
     if (avgPerDay === 0) {
         const activeDatesGeral = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
