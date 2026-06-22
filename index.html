@@ -20,7 +20,6 @@
 <body>
     <div class="app-container">
         <div class="stats-panel">
-
             <div class="stats-cards" id="statsArea">
                 <div class="stat">Episódios Assistidos: <span id="watchedCount">---</span></div>
                 <div class="stat">Faltam: <span id="remainingCount">---</span></div>
@@ -29,22 +28,18 @@
                 <div class="stat">Faltam <span id="totalRelevant">---</span></div>
                 <div class="stat">Semanais em: <span id="finishPrediction">---</span></div>
             </div>
-
             <div class="action-buttons action-flex-container">
-
                 <button class="pirate-btn" id="goToLastWatchedBtn">
                     Ir para o último assistido
                 </button>
-                
+
                 <div class="media-config-box">
                     <span class="media-label">📅 Média:</span>
                     <input type="number" id="inputDias" min="1" max="90">
                     <span class="media-label">dias</span>
                 </div>
-
             </div>
         </div>
-
         <div class="json-option">
             <span>📁 Fonte:</span>
             <select id="dataSourceSelect">
@@ -52,7 +47,6 @@
             </select>
             <span class="file-status" id="fileStatus">✅ Carregando...</span>
         </div>
-
         <div class="filter-bar">
             <div class="filter-group">
                 <button class="filter-btn active-filter" data-filter="all">📋 Todos</button>
@@ -64,14 +58,11 @@
             <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar por número..."
                 autocomplete="off">
         </div>
-
         <div class="info-bar">
             <div class="episode-count" id="displayCount"></div>
             <div style="font-size:0.6rem;">✔️ Toque no checkbox</div>
         </div>
-
         <div id="cardsContainer" class="cards-container"></div>
-
         <div class="table-wrapper">
             <table id="episodeTable">
                 <thead>
@@ -93,7 +84,6 @@
             <path d="m18 15-6-6-6 6" />
         </svg>
     </button>
-
     <script src="assets/js/main.js" defer></script>
 </body>
 

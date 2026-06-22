@@ -271,7 +271,7 @@ function updateStats() {
     // =========================================================================
     let diasMedia = 10; // Padrão fixo caso não exista nada salvo
     const salvoNoStorage = localStorage.getItem("config_dias_media");
-    
+
     if (salvoNoStorage) {
         diasMedia = Math.max(1, parseInt(salvoNoStorage, 10));
     }
@@ -283,10 +283,10 @@ function updateStats() {
         if (!inputHtml.value) {
             inputHtml.value = diasMedia;
         }
-        
+
         // Se o usuário ainda não tiver configurado o evento de mudança, adiciona aqui
         if (!inputHtml.dataset.listenerAtivo) {
-            inputHtml.addEventListener("input", function() {
+            inputHtml.addEventListener("input", function () {
                 const novoValor = parseInt(this.value, 10);
                 if (!isNaN(novoValor) && novoValor > 0) {
                     localStorage.setItem("config_dias_media", novoValor);
@@ -323,7 +323,7 @@ function updateStats() {
 
     const dataLimite = new Date();
     dataLimite.setHours(0, 0, 0, 0);
-    dataLimite.setDate(dataLimite.getDate() - diasMedia); 
+    dataLimite.setDate(dataLimite.getDate() - diasMedia);
 
     const epsUltimosDias = watchedEpisodes.filter(ep => {
         if (!ep.date || !ep.date.includes('/')) return false;
@@ -332,7 +332,7 @@ function updateStats() {
         return dataEp >= dataLimite && dataEp <= hoje;
     });
 
-    let avgPerDay = epsUltimosDias.length / diasMedia; 
+    let avgPerDay = epsUltimosDias.length / diasMedia;
 
     if (avgPerDay === 0) {
         const activeDatesGeral = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
@@ -420,10 +420,10 @@ function updateStats() {
 
                 const assistidosNoArco = episodes.filter(ep => {
                     const n = Number(ep.ep);
-                    return ep.watched && 
-                           relevantTypes.includes(ep.type) && 
-                           n >= inicioArco && 
-                           n <= arcoAtual.fim;
+                    return ep.watched &&
+                        relevantTypes.includes(ep.type) &&
+                        n >= inicioArco &&
+                        n <= arcoAtual.fim;
                 }).length;
 
                 spanCurrentArc.textContent = `${assistidosNoArco} episódios de ${arcoAtual.arco}`;
@@ -440,7 +440,7 @@ function updateStats() {
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
             const metaRestanteHoje = Math.max(0, mediaArredondada - assistidosHoje);
-            
+
             if (remainingInArcCount <= 5 || remainingInArcCount <= metaRestanteHoje) {
                 spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
             } else {
