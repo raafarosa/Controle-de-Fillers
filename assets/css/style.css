@@ -120,42 +120,33 @@ select {
     background: #121212;
     border-radius: 1rem;
     padding: 1rem;
-    /* Padding mais generoso e uniforme */
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    /* Permite quebrar linha se não couber */
     gap: 0.75rem;
-    /* Garante que, ao quebrar linha, os itens não colem um no outro */
 }
 
-/* Ajuste específico para os itens internos */
 .json-option>span,
 .json-option select {
     flex-shrink: 0;
-    /* Impede que o texto ou o select "esmaguem" */
 }
 
 .file-status {
     font-weight: 600;
     white-space: nowrap;
-    /* Evita que o check "✅" fique em uma linha e o texto em outra */
 }
 
 .filter-group {
     display: flex;
     flex-wrap: wrap;
     gap: 0.8rem;
-    /* Aumenta o espaço entre os botões */
     background: #121212;
     padding: 1rem 1.2rem;
-    /* Aumenta o espaço interno (respiro) */
     border-radius: 2rem;
     justify-content: center;
     margin: 1rem 0;
-    /* Cria distância da barra de busca e dos stats */
 }
 
 .info-bar {
@@ -322,40 +313,116 @@ footer {
     transition: 0.5s;
 }
 
-/* Ajustes de Alinhamento da Tabela */
 th,
 td {
     text-align: center;
-    /* Centraliza cabeçalhos e células por padrão */
 }
 
-/* Coluna do Arco: Alinhada à esquerda e com largura mínima para não espalhar */
 .col-arco {
     font-size: 0.65rem;
     font-weight: bold;
     color: #facc15;
     text-align: left !important;
     width: 220px;
-    /* Ajusta o limite do arco */
     min-width: 180px;
 }
 
-/* Coluna do EP: Fixa e próxima ao Arco */
 .col-ep {
     font-weight: 700;
     width: 80px;
     text-align: center;
 }
 
-/* Garante que o cabeçalho acompanhe o alinhamento das colunas */
 table th:first-child {
     text-align: left !important;
 }
 
 #ProgressBar {
     font-family: system-ui, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
-    letter-spacing: 0px; /* Deixa os blocos colados e contínuos */
+    letter-spacing: 0px;
     display: inline-block;
     text-align: center;
     width: 100%;
+}
+
+/* =========================================================================
+   PAINEL DE AÇÕES (BOTÃO IR PARA O ÚLTIMO E CONTROLE DE DIAS DA MÉDIA)
+   ========================================================================= */
+
+/* Container de ações com flexbox para alinhar botão e input */
+.action-flex-container {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+/* Força o botão pirate-btn a ocupar o espaço restante na linha (Desktop/Tablet) */
+.action-flex-container .pirate-btn {
+    flex: 1;
+    min-width: 180px;
+}
+
+/* Caixa de controle de dias para a média */
+.media-config-box {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* Estilização dos textos dentro do bloco de mídia */
+.media-label {
+    position: relative;
+    font-size: 0.85rem;
+    color: #ccc;
+    white-space: nowrap;
+}
+
+/* Estilização personalizada do campo de input numérico */
+#inputDias {
+    width: 44px;
+    background: #121212;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 4px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    outline: none;
+}
+
+#inputDias:focus {
+    border-color: #f97316;
+}
+
+/* --- SUPORTE COMPLETO E CENTRALIZAÇÃO PARA CELULARES --- */
+@media (max-width: 600px) {
+    .action-flex-container {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-flex-container .pirate-btn {
+        flex: 0 1 auto;
+        width: 100%;
+        max-width: 280px;
+        min-width: 200px;
+        text-align: center;
+    }
+
+    .media-config-box {
+        justify-content: center;
+        margin-top: 0.25rem;
+        width: auto;
+    }
 }

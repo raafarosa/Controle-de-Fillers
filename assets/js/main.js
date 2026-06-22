@@ -266,7 +266,40 @@ async function updateEpisodeStatus(ep, watched, date) {
 }
 
 function updateStats() {
+    // =========================================================================
+    // 0. CAPTURA DINÂMICA DA JANELA DE DIAS (HUMAN INTERACTION)
+    // =========================================================================
+    let diasMedia = 10; // Padrão fixo caso não exista nada salvo
+    const salvoNoStorage = localStorage.getItem("config_dias_media");
+    
+    if (salvoNoStorage) {
+        diasMedia = Math.max(1, parseInt(salvoNoStorage, 10));
+    }
+
+    // Vincula dinamicamente com o elemento Input HTML caso ele exista na tela
+    const inputHtml = document.getElementById("inputDias");
+    if (inputHtml) {
+        // Alinha o valor visual do input com o valor lógico atual
+        if (!inputHtml.value) {
+            inputHtml.value = diasMedia;
+        }
+        
+        // Se o usuário ainda não tiver configurado o evento de mudança, adiciona aqui
+        if (!inputHtml.dataset.listenerAtivo) {
+            inputHtml.addEventListener("input", function() {
+                const novoValor = parseInt(this.value, 10);
+                if (!isNaN(novoValor) && novoValor > 0) {
+                    localStorage.setItem("config_dias_media", novoValor);
+                    updateStats(); // Força o recalculo em tempo real ao digitar
+                }
+            });
+            inputHtml.dataset.listenerAtivo = "true"; // Evita duplicar escutas
+        }
+    }
+
+    // =========================================================================
     // 1. Cálculos Básicos
+    // =========================================================================
     const watchedEpisodes = episodes.filter(ep => ep.watched);
     const watchedCount = watchedEpisodes.length;
 
@@ -284,22 +317,22 @@ function updateStats() {
         return `${mins}m`;
     };
 
-    // --- LÓGICA: CALCULAR MÉDIA DOS ÚLTIMOS 10 DIAS CORRIDOS (SEMANA ESTENDIDA) ---
+    // --- LÓGICA: CALCULAR MÉDIA DINÂMICA BASEADA NA JANELA DEFINIDA ---
     const hoje = new Date();
     hoje.setHours(23, 59, 59, 999);
 
     const dataLimite = new Date();
     dataLimite.setHours(0, 0, 0, 0);
-    dataLimite.setDate(dataLimite.getDate() - 10); // Atualizado de 15 para 10 dias
+    dataLimite.setDate(dataLimite.getDate() - diasMedia); 
 
-    const epsUltimos10Dias = watchedEpisodes.filter(ep => {
+    const epsUltimosDias = watchedEpisodes.filter(ep => {
         if (!ep.date || !ep.date.includes('/')) return false;
         const [dia, mes, ano] = ep.date.split('/').map(Number);
         const dataEp = new Date(ano, mes - 1, dia);
         return dataEp >= dataLimite && dataEp <= hoje;
     });
 
-    let avgPerDay = epsUltimos10Dias.length / 10; // Dividido por 10 dias agora
+    let avgPerDay = epsUltimosDias.length / diasMedia; 
 
     if (avgPerDay === 0) {
         const activeDatesGeral = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
@@ -317,7 +350,7 @@ function updateStats() {
         }
     }
 
-    // CORREÇÃO: Definindo a média arredondada no topo para unificar a matemática dos cards
+    // Média unificada para os cards
     const mediaArredondada = avgPerDay > 0 ? Math.max(1, Math.round(avgPerDay)) : 1;
 
     // --- LÓGICA: ASSISTIDOS HOJE ---

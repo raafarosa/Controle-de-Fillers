@@ -14,6 +14,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/x-icon" href="icone.ico?v=1">
     <link rel="stylesheet" href="assets/css/style.css">
+
 </head>
 
 <body>
@@ -29,10 +30,18 @@
                 <div class="stat">Semanais em: <span id="finishPrediction">---</span></div>
             </div>
 
-            <div class="action-buttons" style="margin-top: 1rem;">
+            <div class="action-buttons action-flex-container">
+
                 <button class="pirate-btn" id="goToLastWatchedBtn">
                     Ir para o último assistido
                 </button>
+                
+                <div class="media-config-box">
+                    <span class="media-label">📅 Média:</span>
+                    <input type="number" id="inputDias" min="1" max="90">
+                    <span class="media-label">dias</span>
+                </div>
+
             </div>
         </div>
 
