@@ -267,9 +267,9 @@ async function updateEpisodeStatus(ep, watched, date) {
 
 function updateStats() {
     // =========================================================================
-    // 0. CAPTURA DINÂMICA DA JANELA DE DIAS (HUMAN INTERACTION)
+    // 0. CAPTURA DINÂMICA DA JANELA DE DIAS (PADRÃO PADRONIZADO PARA 90 DIAS)
     // =========================================================================
-    let diasMedia = 10; // Padrão fixo caso não exista nada salvo
+    let diasMedia = 90; // Mantido 90 dias estável como ponto de partida ideal
     const salvoNoStorage = localStorage.getItem("config_dias_media");
 
     if (salvoNoStorage) {
@@ -380,7 +380,7 @@ function updateStats() {
     }
 
     // =========================================================================
-    // --- ATUALIZAÇÃO EXCLUSIVA DOS VALORES DOS SPANS (ORDEM AJUSTADA) ---
+    // --- ATUALIZAÇÃO EXCLUSIVA DOS VALORES DOS SPANS ---
     // =========================================================================
 
     // 1. Episódios Assistidos
@@ -435,16 +435,19 @@ function updateStats() {
         }
     }
 
-    // 5. Próximo arco (Faltam X episódios...)
+    // 5. Próximo arco (AJUSTADO: Lógica humanizada de curto prazo aplicando abatimento absoluto)
     const spanTotalRelevant = document.getElementById("totalRelevant");
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
-            const metaRestanteHoje = Math.max(0, mediaArredondada - assistidosHoje);
+            // AJUSTE CRÍTICO: Descobrimos quantos episódios sobram reais para amanhã, limpando os de hoje sem misturar com a média
+            const epsParaAmanha = Math.max(0, remainingInArcCount - assistidosHoje);
 
-            if (remainingInArcCount <= 5 || remainingInArcCount <= metaRestanteHoje) {
+            if (epsParaAmanha === 0) {
                 spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
             } else {
-                const daysToNextArc = Math.ceil(remainingInArcCount / mediaArredondada);
+                // Calcula os dias necessários com base estrita no saldo que restou de fato
+                const daysToNextArc = Math.ceil(epsParaAmanha / mediaArredondada);
+                
                 const estimatedArcDate = new Date();
                 estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
                 const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
