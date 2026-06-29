@@ -447,7 +447,7 @@ function updateStats() {
             } else {
                 // Calcula os dias necessários com base estrita no saldo que restou de fato
                 const daysToNextArc = Math.ceil(epsParaAmanha / mediaArredondada);
-                
+
                 const estimatedArcDate = new Date();
                 estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
                 const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
