@@ -548,7 +548,7 @@ function updateStats() {
         ? relevant.filter(ep =>
             ep.watched && ep.date === hojeString &&
             ep.ep >= arcoEmProgresso.inicio && ep.ep <= arcoEmProgresso.fim
-          ).length
+        ).length
         : 0;
 
     // ========================================================================
