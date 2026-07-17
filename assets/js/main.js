@@ -271,11 +271,9 @@ function updateStats() {
     // =========================================================================
     let diasMedia = 90; // Mantido 90 dias estável como ponto de partida ideal
     const salvoNoStorage = localStorage.getItem("config_dias_media");
-
     if (salvoNoStorage) {
         diasMedia = Math.max(1, parseInt(salvoNoStorage, 10));
     }
-
     // Vincula dinamicamente com o elemento Input HTML caso ele exista na tela
     const inputHtml = document.getElementById("inputDias");
     if (inputHtml) {
@@ -283,7 +281,6 @@ function updateStats() {
         if (!inputHtml.value) {
             inputHtml.value = diasMedia;
         }
-
         // Se o usuário ainda não tiver configurado o evento de mudança, adiciona aqui
         if (!inputHtml.dataset.listenerAtivo) {
             inputHtml.addEventListener("input", function () {
@@ -296,17 +293,14 @@ function updateStats() {
             inputHtml.dataset.listenerAtivo = "true"; // Evita duplicar escutas
         }
     }
-
     // =========================================================================
     // 1. Cálculos Básicos
     // =========================================================================
     const watchedEpisodes = episodes.filter(ep => ep.watched);
     const watchedCount = watchedEpisodes.length;
-
     const relevantTypes = ["Manga Canon", "Mixed Canon/Filler", "Anime Canon"];
     const relevant = episodes.filter(ep => relevantTypes.includes(ep.type));
     const missing = relevant.filter(ep => !ep.watched).length;
-
     // --- FUNÇÃO AUXILIAR PARA FORMATAR TEMPO (HHh MMmin) ---
     const formatarTempo = (totalMinutes) => {
         const hours = Math.floor(totalMinutes / 60);
@@ -316,15 +310,12 @@ function updateStats() {
         }
         return `${mins}m`;
     };
-
     // --- LÓGICA: CALCULAR MÉDIA DINÂMICA BASEADA NA JANELA DEFINIDA ---
     const hoje = new Date();
     hoje.setHours(23, 59, 59, 999);
-
     const dataLimite = new Date();
     dataLimite.setHours(0, 0, 0, 0);
     dataLimite.setDate(dataLimite.getDate() - diasMedia);
-
     const epsUltimosDias = watchedEpisodes.filter(ep => {
         if (!ep.date || !ep.date.includes('/')) return false;
         const [dia, mes, ano] = ep.date.split('/').map(Number);
@@ -332,8 +323,30 @@ function updateStats() {
         return dataEp >= dataLimite && dataEp <= hoje;
     });
 
-    let avgPerDay = epsUltimosDias.length / diasMedia;
+    // =========================================================================
+    // [CORREÇÃO 1] O divisor não pode ser sempre "diasMedia" fixo.
+    // Precisa ser o número de dias REALMENTE decorridos desde o episódio mais
+    // antigo dentro da janela (limitado a diasMedia). Isso evita diluir
+    // artificialmente a média quando o histórico de atividade é mais curto
+    // que a janela configurada.
+    // =========================================================================
+    let avgPerDay = 0;
+    if (epsUltimosDias.length > 0) {
+        const datasNaJanela = epsUltimosDias.map(ep => {
+            const [dia, mes, ano] = ep.date.split('/').map(Number);
+            return new Date(ano, mes - 1, dia);
+        });
+        const maisAntigaNaJanela = new Date(Math.min(...datasNaJanela.map(d => d.getTime())));
+        const diasReaisDecorridos = Math.max(
+            1,
+            Math.ceil((hoje - maisAntigaNaJanela) / (1000 * 60 * 60 * 24)) + 1
+        );
+        const divisorEfetivo = Math.min(diasMedia, diasReaisDecorridos);
+        avgPerDay = epsUltimosDias.length / divisorEfetivo;
+    }
 
+    // Fallback: se não há nenhum episódio assistido dentro da janela configurada,
+    // usa o histórico completo (comportamento original mantido).
     if (avgPerDay === 0) {
         const activeDatesGeral = watchedEpisodes.map(ep => ep.date).filter(d => d && d.includes('/'));
         if (activeDatesGeral.length > 0) {
@@ -341,7 +354,6 @@ function updateStats() {
                 const [dia, mes, ano] = d.split('/').map(Number);
                 return new Date(ano, mes - 1, dia);
             }).sort((a, b) => a - b);
-
             const primeiroDia = datasOrdenadas[0];
             const totalDiasCorridosGeral = Math.max(1, Math.ceil((hoje - primeiroDia) / (1000 * 60 * 60 * 24)));
             avgPerDay = watchedCount / totalDiasCorridosGeral;
@@ -350,10 +362,17 @@ function updateStats() {
         }
     }
 
-    // Média unificada para os cards
+    // =========================================================================
+    // [CORREÇÃO 2] Mantemos "mediaArredondada" só para EXIBIÇÃO nos cards
+    // (nunca deve ficar abaixo de 1 na tela, por clareza visual).
+    // Mas para os CÁLCULOS de previsão de dias, usamos "mediaParaCalculo",
+    // que preserva o valor real (podendo ser fração), evitando que um piso
+    // artificial de "1 ep/dia" distorça as datas estimadas.
+    // =========================================================================
     const mediaArredondada = avgPerDay > 0 ? Math.max(1, Math.round(avgPerDay)) : 1;
+    const mediaParaCalculo = avgPerDay > 0 ? avgPerDay : (1 / diasMedia);
 
-    // --- LÓGICA: ASSISTIDOS HOJE ---
+    // --- LÓGICA: ASSISTIDOS HOJE (uso geral, para o card de "Ritmo") ---
     const hojeString = hoje.toLocaleDateString('pt-BR');
     const assistidosHoje = episodes.filter(ep => {
         if (!ep.watched || !ep.date) return false;
@@ -364,60 +383,67 @@ function updateStats() {
     const firstUnwatched = relevant.find(ep => !ep.watched);
     let remainingInArcCount = 0;
     let tempoArcoTexto = "0m";
-
+    let arcoAtualInfo = null;
+    let epNumeroInicioArco = null;
     if (firstUnwatched) {
-        const epNumero = Number(firstUnwatched.ep);
-        const arcoAtualInfo = MAPA_ARCOS_NETFLIX.find(a => epNumero <= a.fim);
-
+        epNumeroInicioArco = Number(firstUnwatched.ep);
+        arcoAtualInfo = MAPA_ARCOS_NETFLIX.find(a => epNumeroInicioArco <= a.fim);
         if (arcoAtualInfo) {
             remainingInArcCount = relevant.filter(ep => {
                 const n = Number(ep.ep);
-                return !ep.watched && n >= epNumero && n <= arcoAtualInfo.fim;
+                return !ep.watched && n >= epNumeroInicioArco && n <= arcoAtualInfo.fim;
             }).length;
-
             tempoArcoTexto = formatarTempo(remainingInArcCount * 18);
         }
     }
 
     // =========================================================================
+    // [CORREÇÃO 3] "assistidosHoje" usado no cálculo do arco precisa ser
+    // filtrado para contar apenas episódios relevantes (tipo canônico) que
+    // pertencem ao arco atual em progresso. Caso contrário, episódios de
+    // outros tipos/arcos assistidos hoje "abatem" incorretamente o restante
+    // do arco atual.
+    // =========================================================================
+    const assistidosHojeNoArco = episodes.filter(ep => {
+        if (!ep.watched || !ep.date || ep.date.trim() !== hojeString.trim()) return false;
+        if (!relevantTypes.includes(ep.type)) return false;
+        if (!arcoAtualInfo) return false;
+        const n = Number(ep.ep);
+        return n >= epNumeroInicioArco && n <= arcoAtualInfo.fim;
+    }).length;
+
+    // =========================================================================
     // --- ATUALIZAÇÃO EXCLUSIVA DOS VALORES DOS SPANS ---
     // =========================================================================
-
     // 1. Episódios Assistidos
     const spanWatched = document.getElementById("watchedCount");
     if (spanWatched) {
         const hWatchedTexto = formatarTempo(watchedCount * 18);
         spanWatched.textContent = `${watchedCount} (${hWatchedTexto})`;
     }
-
     // 2. Faltam
     const spanRemaining = document.getElementById("remainingCount");
     if (spanRemaining) {
         const tempoRestanteGeral = formatarTempo(missing * 18);
         spanRemaining.textContent = `${missing} Episódios (~${tempoRestanteGeral})`;
     }
-
-    // 3. Ritmo (Assistidos Hoje)
+    // 3. Ritmo (Assistidos Hoje) — exibição usa a média arredondada (mais legível)
     const spanHoursWatched = document.getElementById("hoursWatched");
     if (spanHoursWatched) {
         const tempoAssistidoHoje = formatarTempo(assistidosHoje * 18);
         spanHoursWatched.textContent = `${assistidosHoje} Episódios (~${tempoAssistidoHoje}) | Média: ${mediaArredondada} ep/dia`;
     }
-
     // 4. Assistidos no Arco
     const spanCurrentArc = document.getElementById("currentArcProgress");
     if (spanCurrentArc) {
         const canonAssistidos = episodes.filter(ep => ep.watched && relevantTypes.includes(ep.type));
-
         if (canonAssistidos.length > 0) {
             const ultimoAssistido = canonAssistidos[canonAssistidos.length - 1];
             const ultimoEpNum = Number(ultimoAssistido.ep);
             const indexArco = MAPA_ARCOS_NETFLIX.findIndex(a => ultimoEpNum <= a.fim);
-
             if (indexArco !== -1) {
                 const arcoAtual = MAPA_ARCOS_NETFLIX[indexArco];
                 const inicioArco = indexArco > 0 ? MAPA_ARCOS_NETFLIX[indexArco - 1].fim + 1 : 1;
-
                 const assistidosNoArco = episodes.filter(ep => {
                     const n = Number(ep.ep);
                     return ep.watched &&
@@ -425,7 +451,6 @@ function updateStats() {
                         n >= inicioArco &&
                         n <= arcoAtual.fim;
                 }).length;
-
                 spanCurrentArc.textContent = `${assistidosNoArco} episódios de ${arcoAtual.arco}`;
             } else {
                 spanCurrentArc.textContent = `0 episódios (Fora do mapa de arcos)`;
@@ -434,44 +459,45 @@ function updateStats() {
             spanCurrentArc.textContent = `0 episódios assistidos`;
         }
     }
-
-    // 5. Próximo arco (AJUSTADO: Lógica humanizada de curto prazo aplicando abatimento absoluto)
+    // 5. Próximo arco (usa mediaParaCalculo para não distorcer a previsão de dias)
     const spanTotalRelevant = document.getElementById("totalRelevant");
     if (spanTotalRelevant) {
         if (remainingInArcCount > 0) {
-            // AJUSTE CRÍTICO: Descobrimos quantos episódios sobram reais para amanhã, limpando os de hoje sem misturar com a média
-            const epsParaAmanha = Math.max(0, remainingInArcCount - assistidosHoje);
-
+            // Descobre quantos episódios sobram reais para amanhã, já descontando
+            // apenas os assistidos hoje QUE PERTENCEM ao arco atual (Correção 3)
+            const epsParaAmanha = Math.max(0, remainingInArcCount - assistidosHojeNoArco);
             if (epsParaAmanha === 0) {
                 spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco: Hoje!`;
             } else {
-                // Calcula os dias necessários com base estrita no saldo que restou de fato
-                const daysToNextArc = Math.ceil(epsParaAmanha / mediaArredondada);
-
+                // Calcula os dias necessários com base na média real (não arredondada)
+                const daysToNextArc = Math.ceil(epsParaAmanha / mediaParaCalculo);
                 const estimatedArcDate = new Date();
                 estimatedArcDate.setDate(estimatedArcDate.getDate() + daysToNextArc);
                 const arcDay = String(estimatedArcDate.getDate()).padStart(2, '0');
                 const arcMonth = String(estimatedArcDate.getMonth() + 1).padStart(2, '0');
                 const arcYear = estimatedArcDate.getFullYear();
-
                 spanTotalRelevant.textContent = `${remainingInArcCount} episódios (~${tempoArcoTexto}) | Próximo arco em ${daysToNextArc} dias (${arcDay}/${arcMonth}/${arcYear})`;
             }
         } else {
             spanTotalRelevant.textContent = `0 dias (Você já está mudando de arco!)`;
         }
     }
-
-    // 6. Semanais em
+    // 6. Semanais em (previsão de término)
     const spanFinish = document.getElementById("finishPrediction");
-    if (spanFinish && missing > 0) {
-        const daysToFinish = Math.ceil(missing / mediaArredondada);
-        const estimatedDate = new Date();
-        estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
-        const day = String(estimatedDate.getDate()).padStart(2, '0');
-        const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
-        const year = estimatedDate.getFullYear();
-
-        spanFinish.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
+    if (spanFinish) {
+        if (missing > 0) {
+            const daysToFinish = Math.ceil(missing / mediaParaCalculo);
+            const estimatedDate = new Date();
+            estimatedDate.setDate(estimatedDate.getDate() + daysToFinish);
+            const day = String(estimatedDate.getDate()).padStart(2, '0');
+            const month = String(estimatedDate.getMonth() + 1).padStart(2, '0');
+            const year = estimatedDate.getFullYear();
+            spanFinish.textContent = `${daysToFinish} dias (${day}/${month}/${year})`;
+        } else {
+            // [CORREÇÃO 4] Antes o span ficava com texto obsoleto quando não
+            // havia mais episódios faltando. Agora trata o caso explicitamente.
+            spanFinish.textContent = `Maratona concluída! 🎉`;
+        }
     }
 }
 
