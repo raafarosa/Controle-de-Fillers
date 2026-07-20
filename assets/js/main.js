@@ -66,7 +66,7 @@ const MAPA_ARCOS_NETFLIX = [
     { arco: "Zou", saga: "Saga Yonkou", fim: 779 },
     { arco: "Marinha Provisória (F)", saga: "Saga Yonkou", fim: 782 },
     { arco: "Ilha Whole Cake", saga: "Saga Yonkou", fim: 877 },
-    { arco: "Levely", saga: "Saga Yonkou", fim: 891 },
+    { arco: "Reverie", saga: "Saga Yonkou", fim: 891 },
     { arco: "País de Wano", saga: "Saga Yonkou", fim: 1088 },
     // 10. Saga Final
     { arco: "Egghead", saga: "Saga Final", fim: 1155 },
